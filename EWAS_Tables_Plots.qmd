@@ -1,0 +1,591 @@
+---
+title: "Plots and Tables of EWAS Models: Primary and Sensitivity"
+author: "NK"
+date: "`r Sys.Date()`"
+format:
+  html:
+    code-overflow: wrap
+editor_options: 
+  chunk_output_type: console
+execute: 
+  fig-width: 18
+  fig-height: 15
+  fig-align: center 
+---
+
+## LOAD PACKAGES
+
+```{r, results='hide', message=FALSE}
+
+library(tidyverse)
+library(qs)
+library(ggpubr)
+library(qqman)
+library(ggplot2)
+library(grid)
+library(cowplot)
+library(gtsummary)
+library(gt)
+library(here)
+library(readxl)
+library(writexl)
+library(flextable)
+library(purrr)
+
+```
+
+## LOAD FILES AND GET DIAGNOSTIC PLOTS
+
+```{r}
+#Rename model result dfs * convert estimates to percents for reporting
+#M1: Health Only
+load("Output/EWAS/resultsm1_childrural_hm.rda")
+h_rural <- results_rural_hannotated
+rm(results_rural_hannotated)
+h_rural <- h_rural %>% mutate(logFCpercent = logFC * 100)
+
+load("Output/EWAS/resultsm1_schlyrs_h.rda")
+h_schlyrs <- results_schlyrs_hannotated
+rm(results_schlyrs_hannotated)
+h_schlyrs <- h_schlyrs %>% mutate(logFCpercent = logFC * 100)
+
+load("Output/EWAS/resultsm1_livegpar_h.rda")
+h_livegpar <- results_livegpar_hannotated
+rm(results_livegpar_hannotated)
+h_livegpar <- h_livegpar %>% mutate(logFCpercent = logFC * 100)
+
+load("Output/EWAS/resultsm1_chsmk_h.rda")
+h_chsmk <- results_chsmk_hannotated
+rm(results_chsmk_hannotated)
+h_chsmk <- h_chsmk %>% mutate(logFCpercent = logFC * 100)
+
+
+#M2: Health, socioeconomic, and behavior Variables
+load("Output/EWAS/resultsm2_childrural_h2.rda")
+sh_rural <- results_rural_hannotated2
+rm(results_rural_hannotated2)
+sh_rural <- sh_rural %>% mutate(logFCpercent = logFC * 100)
+
+load("Output/EWAS/resultsm2_schlyrs_h2.rda")
+sh_schlyrs <- results_schlyrs_hannotated2
+rm(results_schlyrs_hannotated2)
+sh_schlyrs <- sh_schlyrs %>% mutate(logFCpercent = logFC * 100)
+
+load("Output/EWAS/resultsm2_livegpar_h2.rda")
+sh_livegpar <- results_livegpar_hannotated2
+rm(results_livegpar_hannotated2)
+sh_livegpar <- sh_livegpar %>% mutate(logFCpercent = logFC * 100)
+
+load("Output/EWAS/resultsm2_chsmk_h2.rda")
+sh_chsmk <- results_chsmk_hannotated2
+rm(results_chsmk_hannotated2)
+sh_chsmk <- sh_chsmk %>% mutate(logFCpercent = logFC * 100)
+
+
+#M3: Primary
+load("Output/EWAS/resultsm3_rural_ds8.rda")
+rural_smk_8 <- results_rural_ds8annotated
+rm(results_rural_ds8annotated)
+rural_smk_8 <- rural_smk_8 %>% mutate(logFCpercent = logFC * 100)
+
+load("Output/EWAS/resultsm3_schlyrs_ds9.rda")
+schlyrs_m3 <- results_schlyrs_ds9annotated
+rm(results_schlyrs_ds9annotated)
+schlyrs_m3 <- schlyrs_m3 %>% mutate(logFCpercent = logFC * 100)
+
+load("Output/EWAS/resultsm3_livegpar_ds10.rda")
+livegpar_smk_10 <- results_livegpar_ds10annotated
+rm(results_livegpar_ds10annotated)
+livegpar_smk_10 <- livegpar_smk_10 %>% mutate(logFCpercent = logFC * 100)
+
+load("Output/EWAS/resultsm3_chsmk_ds.rda")
+chsmk_ds <- results_chsmk_dsannotated
+rm(results_chsmk_dsannotated)
+chsmk_ds <- chsmk_ds %>% mutate(logFCpercent = logFC * 100)
+
+```
+
+## LOAD IN FUNCTIONS
+
+```{r}
+
+source('EWAS_function.R')
+
+```
+
+## GET DIAGNOSTIC (QQ) PLOTS (Supplemental Figure 4)
+
+```{r}
+
+# Genomic inflation in EWAS
+  ## Extract p_values for (M3/Primary)
+p_values9 <- rural_smk_8$P.Value
+p_values10 <- schlyrs_m3$P.Value
+p_values11 <- livegpar_smk_10$P.Value
+p_values12 <- chsmk_ds$P.Value
+
+
+  ## Extract lambda values (Model 3/Primary)
+lambda_value9 <- calculate_lambda(p_values9)
+lambda_value10 <- calculate_lambda(p_values10)
+lambda_value11 <- calculate_lambda(p_values11)
+lambda_value12 <- calculate_lambda(p_values12)
+
+
+
+#Generate plots
+  ## M3
+qq_ruralm3 <- qq_plot2(p_values9, lambda_value9, "Grew up in a rural area")
+qq_schlyrsm3 <- qq_plotschlyrs(p_values10, lambda_value10, "Years in school")
+qq_livegparm3 <- qq_plot2(p_values11, lambda_value11, "Live with a grandparent")
+qq_chsmkm3 <- qq_plot2(p_values12, lambda_value12, "Smoking during childhood")
+
+# Combine
+qq_plotsm3 <- plot_grid(qq_ruralm3, qq_schlyrsm3, qq_livegparm3, qq_chsmkm3, labels = c('A', 'B', 'C', 'D'), label_size = 28, ncol = 2)
+qq_plotsm3
+
+# Export
+save_plot("Manuscript/20261601/Jan16_qq_plots_m3.png", qq_plotsm3, base_width = 18, base_height = 15, dpi = 1200, bg = "white")
+
+```
+
+## VOLCANO PLOTS (Figure 3)
+
+### CHILD RURAL
+
+```{r}
+
+ ## M3
+#Plot
+plot.volcano <- function(rural_smk_8,main=NULL,xlim=NULL,ylim=NULL, nudge=0, title=""){par(mar=c(5,5,3,3))
+#get betas and pvals from single sites results
+betas <- rural_smk_8$logFCpercent
+pvals <- -log(rural_smk_8$P.Value,10)
+#assign colors
+pcol <- ifelse(pvals < -log(0.05,10), 'darkslategrey', ifelse(betas>0,'#558899','#559999'))
+#get percent hyper/hypo for sites above threshold
+total <- table(pcol)['#558899'] + table(pcol)['#559999']
+pct <- c(round(table(pcol)['#558899']/total * 100,1),round(table(pcol)['#559999']/total * 100,1))
+#auto calculate axis range if not defined
+if(is.null(xlim)){
+  max.x <- max(abs(betas))
+  xlim <- c(-max.x-0.05, max.x+0.05)
+}
+if(is.null(ylim)){
+  ylim <- c(0,ifelse(max(pvals)<7, 7, max(pvals)+0.5))
+}
+df <- data.frame(betas=betas, pvals=pvals, col=pcol)
+  ggplot(df, aes(x=betas, y=pvals, col=I(col))) +
+    geom_point(size = 0.5, show.legend = FALSE) + ggtitle(title) +
+    geom_hline(yintercept=-log(0.05, 10),color='blue') +
+    geom_hline(yintercept=7,color='red') +
+    geom_vline(xintercept = 0, linetype = "dotted", color = "black") +
+    annotate("segment", x = -0.12, xend = -0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
+                 arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) +
+    annotate("segment", x = 0.12, xend = 0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
+                 arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) + 
+    annotate("text", x = -1.0, y = max(ylim) -0.3, label = "Lower percent \n methylation", size = 10, hjust = 1.02) +
+    annotate("text", x = 1.0, y = max(ylim) -0.3, label = "Higher percent \n methylation", size = 10, hjust = -0.02) +
+    theme_bw() +
+    theme(title=element_text(size = 28), axis.text=element_text(size=25), axis.title = element_text(size = 28)) +
+    xlim(xlim) + ylim(ylim) +
+    xlab(paste0('Adjusted difference in percent DNA methylation')) + ylab(expression('-Log'[10]*'(P-Value)')) +
+    annotate("text", x = xlim[2] - 0.02, y = 5.5, label = paste0(pct[1],'%'), color='darkslategrey', size = 10, fontface = 'bold', hjust = 1) +
+    annotate("text", x = xlim[1] + 0.02, y = 5.5, label = paste0(pct[2],'%'), color='#558899', size = 10, fontface = 'bold', hjust = 0) 
+}
+volcano_rural3 <- plot.volcano(rural_smk_8, ylim=c(0,15.3), xlim=c(-5,5), nudge=0.015, title = "A. Grew up in a rural area")
+
+#Get Number with Higher and Lower Methylation
+fdrp <- rural_smk_8[rural_smk_8$adj.P.Val < 0.05,]
+sig <- rural_smk_8$P.Value < 0.05
+betas_sig <- rural_smk_8$logFCpercent[sig]
+rural_higher <- sum(betas_sig>0, na.rm=T)
+rural_lower <- sum(betas_sig<0, na.rm=T)
+rural_total <- length(betas_sig)
+pct_higher_sig <- (rural_higher/rural_total)*100
+pct_lower_sig <- (rural_lower/rural_total)*100
+
+cat("Higher Methylation N:", rural_higher, "(",round(pct_higher_sig, 2), "%)\n")
+cat("Lower Methylation N:", rural_lower, "(",round(pct_lower_sig, 2), "%)\n")
+
+```
+
+### YEARS IN SCHOOL
+
+```{r}
+
+  ## M3
+plot.volcano <- function(schlyrs_m3,main=NULL,xlim=NULL,ylim=NULL, nudge=0, title=""){par(mar=c(5,5,3,3))
+#get betas and pvals from single sites results
+betas <- schlyrs_m3$logFCpercent 
+pvals <- -log10(schlyrs_m3$P.Value)
+#assign colors
+pcol <- ifelse(pvals < -log(0.05,10), 'darkslategrey', ifelse(betas>0,'#558899','#559999'))
+#get percent hyper/hypo for sites above threshold
+total <- table(pcol)['#558899'] + table(pcol)['#559999']
+pct <- c(round(table(pcol)['#558899']/total * 100,1),round(table(pcol)['#559999']/total * 100,1))
+#auto calculate axis range if not defined
+if(is.null(xlim)){
+  max.x <- max(abs(betas))
+  xlim <- c(-max.x-0.05, max.x+0.05)
+}
+if(is.null(ylim)){
+  ylim <- c(0,ifelse(max(pvals)<7, 7, max(pvals)+0.5))
+}
+df <- data.frame(betas=betas, pvals=pvals, col=pcol)
+  ggplot(df, aes(x=betas, y=pvals, col=I(col))) +
+    geom_point(size = 0.5, show.legend = FALSE) + ggtitle(title) +
+    geom_hline(yintercept=-log(0.05, 10),color='blue') +
+    geom_hline(yintercept=7,color='red') +
+    geom_vline(xintercept = 0, linetype = "dotted", color = "black") +
+    annotate("segment", x = -0.12, xend = -0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
+                 arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) +
+    annotate("segment", x = 0.12, xend = 0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
+                 arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) + 
+    annotate("text", x = -1.0, y = max(ylim) -0.3, label = "Lower percent \n methylation", size = 10, hjust = 1.02) +
+    annotate("text", x = 1.0, y = max(ylim) -0.3, label = "Higher percent \n methylation", size = 10, hjust = -0.02) +
+    theme_bw() +
+    theme(title=element_text(size = 28), axis.text=element_text(size=25), axis.title = element_text(size = 28)) +
+    xlim(xlim) + ylim(ylim) +
+    xlab(paste0('Adjusted difference in percent DNA methylation')) + ylab(expression('-Log'[10]*'(P-Value)')) +
+    annotate("text", x = xlim[2] - 0.02, y = 5.5, label = paste0(pct[1],'%'), color='darkslategrey', size = 10, fontface = 'bold', hjust = 1) +
+    annotate("text", x = xlim[1] + 0.02, y = 5.5, label = paste0(pct[2],'%'), color='#558899', size = 10, fontface = 'bold', hjust = 0) 
+}
+volcano_schlyrs3 <- plot.volcano(schlyrs_m3, ylim=c(0,15.6), xlim=c(-5,5), nudge=0.015, title = "B. Years in school")
+
+#Get Number with Higher and Lower Methylation
+fdrp <- schlyrs_m3[schlyrs_m3$adj.P.Val < 0.05,]
+sig <- schlyrs_m3$P.Value < 0.05
+betas_sig <- schlyrs_m3$logFCpercent[sig]
+schlyrs_higher <- sum(betas_sig>0, na.rm=T)
+schlyrs_lower <- sum(betas_sig<0, na.rm=T)
+schlyrs_total <- length(betas_sig)
+pct_higher_sig <- (schlyrs_higher/schlyrs_total)*100
+pct_lower_sig <- (schlyrs_lower/schlyrs_total)*100
+
+cat("Higher Methylation N:", schlyrs_higher, "(",round(pct_higher_sig, 2), "%)\n")
+cat("Lower Methylation N:", schlyrs_lower, "(",round(pct_lower_sig, 2), "%)\n")
+
+```
+
+### LIVE WITH a GRANDPARENT
+
+```{r}
+
+  ## M3
+plot.volcano <- function(livegpar_smk_10,main=NULL,xlim=NULL,ylim=NULL, nudge=0, title=""){par(mar=c(5,5,3,3))
+#get betas and pvals from single sites results
+betas <- livegpar_smk_10$logFCpercent
+pvals <- -log(livegpar_smk_10$P.Value,10)
+#assign colors
+pcol <- ifelse(pvals < -log(0.05,10), 'darkslategrey', ifelse(betas>0,'#558899','#559999'))
+#get percent hyper/hypo for sites above threshold
+total <- table(pcol)['#558899'] + table(pcol)['#559999']
+pct <- c(round(table(pcol)['#558899']/total * 100,1),round(table(pcol)['#559999']/total * 100,1))
+#auto calculate axis range if not defined
+if(is.null(xlim)){
+  max.x <- max(abs(betas))
+  xlim <- c(-max.x-0.05, max.x+0.05)
+}
+if(is.null(ylim)){
+  ylim <- c(0,ifelse(max(pvals)<7, 7, max(pvals)+0.5))
+}
+df <- data.frame(betas=betas, pvals=pvals, col=pcol)
+  ggplot(df, aes(x=betas, y=pvals, col=I(col))) +
+    geom_point(size = 0.5, show.legend = FALSE) + ggtitle(title) +
+    geom_hline(yintercept=-log(0.05, 10),color='blue') +
+    geom_hline(yintercept=7,color='red') +
+    geom_vline(xintercept = 0, linetype = "dotted", color = "black") +
+    annotate("segment", x = -0.12, xend = -0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
+                 arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) +
+    annotate("segment", x = 0.12, xend = 0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
+                 arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) + 
+    annotate("text", x = -1.0, y = max(ylim) -0.3, label = "Lower percent \n methylation", size = 10, hjust = 1.02) +
+    annotate("text", x = 1.0, y = max(ylim) -0.3, label = "Higher percent \n methylation", size = 10, hjust = -0.02) +
+    theme_bw() +
+    theme(title=element_text(size = 28), axis.text=element_text(size=25), axis.title = element_text(size = 28)) +
+    xlim(xlim) + ylim(ylim) +
+    xlab(paste0('Adjusted difference in percent DNA methylation')) + ylab(expression('-Log'[10]*'(P-Value)')) +
+    annotate("text", x = xlim[2] - 0.02, y = 5.5, label = paste0(pct[1],'%'), color='darkslategrey', size = 10, fontface = 'bold', hjust = 1) +
+    annotate("text", x = xlim[1] + 0.02, y = 5.5, label = paste0(pct[2],'%'), color='#558899', size = 10, fontface = 'bold', hjust = 0) 
+}
+volcano_livegpar3 <- plot.volcano(livegpar_smk_10, ylim=c(0,15.3), xlim=c(-5,5), nudge=0.015, title = "C. Live with a grandparent")
+
+#Get Number with Higher and Lower Methylation
+fdrp <- livegpar_smk_10[livegpar_smk_10$adj.P.Val < 0.05,]
+sig <- livegpar_smk_10$P.Value < 0.05
+betas_sig <- livegpar_smk_10$logFCpercent[sig]
+livegpar_higher <- sum(betas_sig>0, na.rm=T)
+livegpar_lower <- sum(betas_sig<0, na.rm=T)
+livegpar_total <- length(betas_sig)
+pct_higher_sig <- (livegpar_higher/livegpar_total)*100
+pct_lower_sig <- (livegpar_lower/livegpar_total)*100
+
+cat("Higher Methylation N:", livegpar_higher, "(",round(pct_higher_sig, 2), "%)\n")
+cat("Lower Methylation N:", livegpar_lower, "(",round(pct_lower_sig, 2), "%)\n")
+
+```
+
+### CHILD SMOKING
+
+```{r}
+
+  ## M3
+plot.volcano <- function(chsmk_ds,main=NULL,xlim=NULL,ylim=NULL, nudge=0, title=""){par(mar=c(5,5,3,3))
+#get betas and pvals from single sites results
+betas <- chsmk_ds$logFCpercent
+pvals <- -log(chsmk_ds$P.Value,10)
+#assign colors
+pcol <- ifelse(pvals < -log(0.05,10), 'darkslategrey', ifelse(betas>0,'#558899','#559999'))
+#get percent hyper/hypo for sites above threshold
+total <- table(pcol)['#558899'] + table(pcol)['#559999']
+pct <- c(round(table(pcol)['#558899']/total * 100,1),round(table(pcol)['#559999']/total * 100,1))
+#auto calculate axis range if not defined
+if(is.null(xlim)){
+  max.x <- max(abs(betas))
+  xlim <- c(-max.x-0.05, max.x+0.05)
+}
+if(is.null(ylim)){
+  ylim <- c(0,ifelse(max(pvals)<7, 7, max(pvals)+0.5))
+}
+df <- data.frame(betas=betas, pvals=pvals, col=pcol)
+  ggplot(df, aes(x=betas, y=pvals, col=I(col))) +
+    geom_point(size = 0.5, show.legend = FALSE) + ggtitle(title) +
+    geom_hline(yintercept=-log(0.05, 10),color='blue') +
+    geom_hline(yintercept=7,color='red') +
+    geom_vline(xintercept = 0, linetype = "dotted", color = "black") +
+    annotate("segment", x = -0.12, xend = -0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
+                 arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) +
+    annotate("segment", x = 0.12, xend = 0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
+                 arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) + 
+    annotate("text", x = -1.0, y = max(ylim) -0.3, label = "Lower percent \n methylation", size = 10, hjust = 1.02) +
+    annotate("text", x = 1.0, y = max(ylim) -0.3, label = "Higher percent \n methylation", size = 10, hjust = -0.02) +
+    theme_bw() +
+    theme(title=element_text(size = 28), axis.text=element_text(size=25), axis.title = element_text(size = 28)) +
+    xlim(xlim) + ylim(ylim) +
+    xlab(paste0('Adjusted difference in percent DNA methylation')) + ylab(expression('-Log'[10]*'(P-Value)')) +
+    annotate("text", x = xlim[2] - 0.02, y = 5.5, label = paste0(pct[1],'%'), color='darkslategrey', size = 10, fontface = 'bold', hjust = 1) +
+    annotate("text", x = xlim[1] + 0.02, y = 5.5, label = paste0(pct[2],'%'), color='#558899', size = 10, fontface = 'bold', hjust = 0) 
+}
+volcano_chsmk3 <- plot.volcano(chsmk_ds, ylim=c(0,15.3), xlim=c(-5,5), nudge=0.015, title = "D. Smoking during childhood")
+
+#Get Number with Higher and Lower Methylation
+fdrp <- chsmk_ds[chsmk_ds$adj.P.Val < 0.05,]
+sig <- chsmk_ds$P.Value < 0.05
+betas_sig <- chsmk_ds$logFCpercent[sig]
+chsmk_higher <- sum(betas_sig>0, na.rm=T)
+chsmk_lower <- sum(betas_sig<0, na.rm=T)
+chsmk_total <- length(betas_sig)
+pct_higher_sig <- (chsmk_higher/chsmk_total)*100
+pct_lower_sig <- (chsmk_lower/chsmk_total)*100
+
+cat("Higher Methylation N:", chsmk_higher, "(",round(pct_higher_sig, 2), "%)\n")
+cat("Lower Methylation N:", chsmk_lower, "(",round(pct_lower_sig, 2), "%)\n")
+
+```
+
+## EXPORT VOLCANO PLOTS
+
+```{r}
+
+# Combine Volcano plots
+volcano_plots <- plot_grid(volcano_rural3, volcano_schlyrs3, volcano_livegpar3, volcano_chsmk3, ncol = 2)
+volcano_plots
+
+save_plot("Manuscript/20261601/Jan16_volcanoplots_primarym3test.png", volcano_plots, base_width = 26, base_height = 18, dpi = 1200, bg = "white")
+
+```
+
+## SCATTER PLOTS (Supplemental Figure 5)
+
+### COMPARE MODEL COEFFICENTS BETWEEN EXPOSURES (M3/Primary)
+
+```{r, warning=FALSE}
+
+png("Manuscript/20261601/Jan16_exposure-by-exposure-betas-scatter_allp.png", width=2800, height=1750, res = 300)
+
+par(mfrow=c(2, 3), mar=c(5,5,2,2))
+
+#rural x schlyrs
+both.results <- rural_smk_8 %>%
+  inner_join(schlyrs_m3, by="CpG", suffix=c(".rural_smk_8", ".schlyrs_m3")) %>%
+  select(CpG, beta.rural_smk_8 = logFC.rural_smk_8, p.rural_smk_8 = P.Value.rural_smk_8, 
+         beta.schlyrs_m3 = logFC.schlyrs_m3, p.schlyrs_m3 = P.Value.schlyrs_m3)
+# All CpGs
+smoothScatter(both.results$beta.rural_smk_8 ~ both.results$beta.schlyrs_m3, 
+              xlab="Years in school", ylab="Grew up in a rural area", cex.lab=1.8, cex.axis=1.1)
+cor_r <- cor(both.results$beta.rural_smk_8, both.results$beta.schlyrs_m3)
+mtext(paste("r = ", round(cor_r, 3)), side=3, line=-1.8, adj=0.05, cex=1.3)
+
+
+#rural x livegpar
+both.results <- rural_smk_8 %>%
+  inner_join(livegpar_smk_10, by="CpG", suffix=c(".rural_smk_8", ".livegpar_smk_10")) %>%
+  select(CpG, beta.rural_smk_8 = logFC.rural_smk_8, p.rural_smk_8 = P.Value.rural_smk_8, 
+         beta.livegpar_smk_10 = logFC.livegpar_smk_10, p.livegpar_smk_10 = P.Value.livegpar_smk_10)
+# All CpGs
+smoothScatter(both.results$beta.rural_smk_8 ~ both.results$beta.livegpar_smk_10, 
+              xlab="Live with a grandparent", ylab="Grew up in a rural area", cex.lab=1.8, cex.axis=1.1)
+cor_r <- cor(both.results$beta.rural_smk_8, both.results$beta.livegpar_smk_10)
+mtext(paste("r = ", round(cor_r, 3)), side=3, line=-1.8, adj=0.05, cex=1.3)
+
+
+#rural x chsmk
+both.results <- rural_smk_8 %>%
+  inner_join(chsmk_ds, by="CpG", suffix=c(".rural_smk_8", ".chsmk_ds")) %>%
+  select(CpG, beta.rural_smk_8 = logFC.rural_smk_8, p.rural_smk_8 = P.Value.rural_smk_8, 
+         beta.chsmk_ds = logFC.chsmk_ds, p.chsmk_ds = P.Value.chsmk_ds)
+# All CpGs
+smoothScatter(both.results$beta.rural_smk_8 ~ both.results$beta.chsmk_ds, 
+              xlab="Smoking during childhood", ylab="Grew up in a rural area", cex.lab=1.8, cex.axis=1.1)
+cor_r <- cor(both.results$beta.rural_smk_8, both.results$beta.chsmk_ds)
+mtext(paste("r = ", round(cor_r, 3)), side=3, line=-1.8, adj=0.05, cex=1.3)
+
+#schlyrs x livegpar
+both.results <- schlyrs_m3 %>%
+  inner_join(livegpar_smk_10, by="CpG", suffix=c(".schlyrs_m3", ".livegpar_smk_10")) %>%
+  select(CpG, beta.schlyrs_m3 = logFC.schlyrs_m3, p.schlyrs_m3 = P.Value.schlyrs_m3, 
+         beta.livegpar_smk_10 = logFC.livegpar_smk_10, p.livegpar_smk_10 = P.Value.livegpar_smk_10)
+# All CpGs
+smoothScatter(both.results$beta.schlyrs_m3 ~ both.results$beta.livegpar_smk_10, 
+              xlab="Live with a grandparent", ylab="Years in school", cex.lab=1.8, cex.axis=1.1)
+cor_r <- cor(both.results$beta.schlyrs_m3, both.results$beta.livegpar_smk_10)
+mtext(paste("r = ", round(cor_r, 3)), side=3, line=-1.8, adj=0.05, cex=1.3)
+
+#schlyrs x chsmk
+both.results <- schlyrs_m3 %>%
+  inner_join(chsmk_ds, by="CpG", suffix=c(".schlyrs_m3", ".chsmk_ds")) %>%
+  select(CpG, beta.schlyrs_m3 = logFC.schlyrs_m3, p.schlyrs_m3 = P.Value.schlyrs_m3, 
+         beta.chsmk_ds = logFC.chsmk_ds, p.chsmk_ds = P.Value.chsmk_ds)
+# All CpGs
+smoothScatter(both.results$beta.schlyrs_m3 ~ both.results$beta.chsmk_ds, 
+              xlab="Smoking during childhood", ylab="Years in school", cex.lab=1.8, cex.axis=1.1)
+cor_r <- cor(both.results$beta.schlyrs_m3, both.results$beta.chsmk_ds)
+mtext(paste("r = ", round(cor_r, 3)), side=3, line=-1.8, adj=0.05, cex=1.3)
+
+
+#livegpar x chsmk
+both.results <- livegpar_smk_10 %>%
+  inner_join(chsmk_ds, by="CpG", suffix=c(".livegpar_smk_10", ".chsmk_ds")) %>%
+  select(CpG, beta.livegpar_smk_10 = logFC.livegpar_smk_10, p.livegpar_smk_10 = P.Value.livegpar_smk_10, 
+         beta.chsmk_ds = logFC.chsmk_ds, p.chsmk_ds = P.Value.chsmk_ds)
+# All CpGs
+smoothScatter(both.results$beta.livegpar_smk_10 ~ both.results$beta.chsmk_ds, 
+              xlab="Smoking during childhood", ylab="Live with a grandparent", cex.lab=1.8, cex.axis=1.1)
+cor_r <- cor(both.results$beta.livegpar_smk_10, both.results$beta.chsmk_ds)
+mtext(paste("r = ", round(cor_r, 3)), side=3, line=-1.8, adj=0.05, cex=1.3)
+
+dev.off()
+
+```
+
+# COMPARE WITH PRIOR LITERATURE (Supplemental Figure 6)
+
+```{r, warning=FALSE}
+
+#Maternal educational attainment in pregnancy and epigenome-wide DNA methylation changes in the offspring from birth until adolescence (PMID: 38052982)
+maternal_educ_ewas <- readxl::read_xlsx("Manuscript/EWAS_Overlap/PMID-38052982-ewas-maternaleducation.xlsx")
+
+#Epigenetic signatures of cigarette smoking (PMID: 27651444)
+  ## Current vs Never Smokers
+currentsmk_ewas <-  readxl::read_xlsx("Manuscript/EWAS_Overlap/PMC5267325_meta-ewas_currentcigarettesmoking.xlsx")
+
+#Epigenetic signatures of cigarette smoking (PMID: 27651444)
+  ## Former vs Never Smokers
+formersmk_ewas <-  readxl::read_xlsx("Manuscript/EWAS_Overlap/PMC5267325_meta-ewas_formercigarettesmoking.xlsx")
+
+#Create scatterplots
+png("Manuscript/EWAS_Overlap/Jan16_maternaleduc_smk_m3primaryEWAS-ALLbetas-scatter.png", width=3000, height=1000, res = 300)
+
+par(mfrow=c(1, 3), mar=c(5,5,4,2))
+
+  ## Years in school
+both.results.topschlyrs <- schlyrs_m3 %>%
+  inner_join(maternal_educ_ewas, by="CpG", suffix=c(".schlyrs_m3", ".maternal_educ_ewas")) %>%
+  select(CpG, beta.schlyrs_m3 = logFC.schlyrs_m3, p.schlyrs_m3 = P.Value.schlyrs_m3, 
+         beta.maternal_educ_ewas = logFC.maternal_educ_ewas, p.maternal_educ_ewas = P.Value.maternal_educ_ewas)
+smoothScatter(both.results.topschlyrs$beta.schlyrs_m3 ~ both.results.topschlyrs$beta.maternal_educ_ewas, 
+              xlab="EWAS maternal education", ylab="Years in school")
+cor_r <- cor(both.results.topschlyrs$beta.schlyrs_m3, both.results.topschlyrs$beta.maternal_educ_ewas)
+mtext(paste("r = ", round(cor_r, 3)), side=3, line=-1.2, adj=0.8, cex=0.7)
+
+#Current vs never smoking
+  ## Smoking during childhood
+both.results5 <- chsmk_ds %>%
+  inner_join(currentsmk_ewas, by="CpG", suffix=c(".chsmk_ds", ".currentsmk_ewas")) %>%
+  select(CpG, beta.chsmk_ds = logFC.chsmk_ds, p.chsmk_ds = P.Value.chsmk_ds, 
+         beta.currentsmk_ewas = logFC.currentsmk_ewas, p.currentsmk_ewas = P.Value.currentsmk_ewas)
+smoothScatter(both.results5$beta.chsmk_ds ~ both.results5$beta.currentsmk_ewas, 
+              xlab="EWAS current smoking", ylab="Smoking during childhood")
+cor_r <- cor(both.results5$beta.chsmk_ds, both.results5$beta.currentsmk_ewas)
+mtext(paste("r = ", round(cor_r, 3)), side=3, line=-1.5, adj=0.05, cex=0.7)
+
+#Former vs never smoking
+  ## Smoking during childhood
+both.results9 <- chsmk_ds %>%
+  inner_join(formersmk_ewas, by="CpG", suffix=c(".chsmk_ds", ".formersmk_ewas")) %>%
+  select(CpG, beta.chsmk_ds = logFC.chsmk_ds, p.chsmk_ds = P.Value.chsmk_ds, 
+         beta.formersmk_ewas = logFC.formersmk_ewas, p.formersmk_ewas = P.Value.formersmk_ewas)
+smoothScatter(both.results9$beta.chsmk_ds ~ both.results9$beta.formersmk_ewas, 
+              xlab="EWAS former smoking", ylab="Smoking during childhood")
+cor_r <- cor(both.results9$beta.chsmk_ds, both.results9$beta.formersmk_ewas)
+mtext(paste("r = ", round(cor_r, 3)), side=3, line=-1.5, adj=0.05, cex=0.7)
+
+dev.off()
+
+```
+
+## OUTPUT RESULTS TO TABLE
+
+### M3 PRIMARY models
+
+```{r}
+
+cat("Top 20 significant CpG Sites for Association between Child Rural and DNAm: Adjusted for Model 2 Covariates + Smoking")
+top_cpgs_rural_m3 <- rural_smk_8 %>% arrange(P.Value) %>% head(10)
+
+cat("Top 20 significant CpG Sites for Association between Years of School and DNAm: Adjusted for Model 2 Covariates + Smoking")
+top_cpgs_schlyrsm3 <- schlyrs_m3 %>% arrange(P.Value) %>% head(10)
+
+cat("Top 20 significant CpG Sites for Association between Live with a Grandparent and DNAm: Adjusted for Model 2 Covariates + Smoking")
+top_cpgs_livegparm3 <- livegpar_smk_10 %>% arrange(P.Value) %>% head(10)
+
+cat("Top 20 significant CpG Sites for Association between Child Smoking and DNAm: Adjusted for Model 2 Covariates + Drinking")
+top_cpgs_chsmk_ds <- chsmk_ds %>% arrange(P.Value) %>% head(10)
+
+
+#Set up individual exposure tables
+#Primary
+top_cpgs_m3_ruraltbl <-  top_tbl(top_cpgs_rural_m3, "Top 20 significant CpG sites for Grew up in a rural area and DNAm: Adjusted for model 2 covariates + smoking")
+top_cpgs_m3_schlyrstbl <- top_tbl(top_cpgs_schlyrsm3, "Top 20 significant CpG sites for Years in school and DNAm: Adjusted for model 2 covariates + smoking")
+top_cpgs_m3_livegpartbl <- top_tbl(top_cpgs_livegparm3, "Top 20 significant CpG sites for Live with a grandparent and DNAm: Adjusted for model 2 covariates + smoking")
+top_cpgs_chsmkdstbl <- top_tbl(top_cpgs_chsmk_ds, "Top 20 significant CpG sites for Smoking during childhood and DNAm: Adjusted for model 2 covariates + drinking")
+
+
+gtsave(top_cpgs_m3_ruraltbl, "Manuscript/EWAS/top_ruraltbl_M32026Jan16.docx")
+gtsave(top_cpgs_m3_schlyrstbl, "Manuscript/EWAS/top_schlyrstbl_M32026Jan16.docx")
+gtsave(top_cpgs_m3_livegpartbl, "Manuscript/EWAS/top_livegpartbl_M32026Jan16.docx")
+gtsave(top_cpgs_chsmkdstbl, "Manuscript/EWAS/top_chsmktbl_M32026Jan16.docx")
+
+```
+
+## EXPORT RESULTS
+
+```{r}
+
+### write single site results files
+#Primary models
+sheets_primarym3 = list('childrural' = rural_smk_8, 'SCHLYRS' = schlyrs_m3, 'LIVEGPAR' = livegpar_smk_10, 'CHSMOKE' = chsmk_ds)
+writexl::write_xlsx(sheets_primarym3, 'Manuscript/EWAS/Supplemental Table 6-Primary Single Site Results.xlsx')
+
+
+#Health, socioeconomic, and behavior Variables models
+sheets_suppm2 = list('childrural' = sh_rural, 'SCHLYRS' = sh_schlyrs, 'LIVEGPAR' = sh_livegpar, 'CHSMOKE' = sh_chsmk)
+write_xlsx(sheets_suppm2, 'Manuscript/EWAS/Supplemental Table 7-Health Only and Health Socioeconomic and Behavior Single Site Results.xlsx')
+
+
+#Health only models
+sheets_supplm1 = list('childrural' = h_rural, 'SCHLYRS' = h_schlyrs, 'LIVEGPAR' = h_livegpar, 'CHSMOKE' = h_chsmk)
+write_xlsx(sheets_supplm1, 'Manuscript/EWAS/Supplemental Table 8-Health Only Single Site Results.xlsx', format_headers = TRUE)
+
+```

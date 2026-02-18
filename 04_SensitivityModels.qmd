@@ -1,0 +1,256 @@
+---
+title: "Sensitivity Linear Regression Models"
+author: "NK"
+date: "`r Sys.Date()`"
+format:
+  html:
+    code-overflow: wrap
+editor_options: 
+  chunk_output_type: console
+---
+
+## LOAD PACKAGES
+
+```{r, results='hide', message=FALSE}
+
+library(readxl)
+library(car)
+library(tidyverse)
+library(tidymodels)
+library(parallel)
+library(broom)
+library(broom.helpers)
+
+```
+
+## READ IN DATA
+
+```{r, results='hide', message=FALSE}
+
+## Load complete analytic dataset (HRS_DNAm_meta_Cell9_Includedsubset) from 01_DataManage_Exclusion.qmd file
+complete_subset <- readRDS("NewData/HRS_DNAm_meta_Cell9_Includedsubset20261601.RDS")
+dim(complete_subset)
+
+```
+
+## LOAD IN FUNCTIONS
+
+```{r}
+
+source('ELE_DNAm_functions.R')
+
+```
+
+## DEFINE MODEL EXPOSURES, OUTCOMES, AND COVARIATES
+
+```{r}
+
+## HEALTH ONLY
+  ## Define variables
+exposure_vars <- c("childrural_democoggen", "SCHLYRS_rev", "LIVEGPAR_R", "CHSMOKE_R")
+outcome_vars <- c("GRIM_residuals", "LEVINE_residuals", "MPOA_residuals", "HORVATH_residuals", "HANNUM_residuals")
+outcome_vars_gm <- c("globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean")
+  ## Define model covariates
+covars_health <- c("age", "sex", "raceethnicity_collapsed", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "GR", "NK", "B", "CD8", "CD4", "Sample_Plate") 
+
+
+## Health, socioeconomic, and behavior Variables
+  ## Define individual exposures corresponding to the covariates below
+exposure_vars1 <- c("childrural_democoggen")
+exposure_vars2 <- c("SCHLYRS_rev")
+exposure_vars3 <- c("LIVEGPAR_R")
+exposure_vars4 <- c("CHSMOKE_R")
+  ## Define model covariates
+covars1 <- c("age", "sex", "raceethnicity_collapsed", "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "GR", "NK", "B", "CD8", "CD4", "Sample_Plate")  
+covars2 <- c("age", "sex", "raceethnicity_collapsed", "Parent_Educ", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "GR", "NK", "B", "CD8", "CD4", "Sample_Plate")  
+covars3 <- c("age", "sex", "raceethnicity_collapsed", "ATOTB_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "GR", "NK", "B", "CD8", "CD4", "Sample_Plate")  
+covars4 <- c("age", "sex", "raceethnicity_collapsed", "smoke_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "GR", "NK", "B", "CD8", "CD4", "Sample_Plate")  
+
+```
+
+## HEALTH ONLY
+
+### Age Acceleration
+
+```{r}
+
+## Create combinations of all outcomes and exposures
+var_combinations_mHm1 <- func_var_combinations(exposure_vars, outcome_vars)
+
+## Run the adjusted linear regression models and save results in new df
+adjusted_mHm1 <- run_linear_models(var_combinations_mHm1, data = complete_subset, covars = covars_health)
+adjusted_mH_summaries_dfm1 <- models_summarize(var_combinations_mHm1, adjusted_mHm1)
+
+# Save as new dataframe
+saveRDS(adjusted_mHm1, file = "Model_Diagnostics/adjusted_m1healthonly20261501.RDS")
+
+## Export the data frame
+writexl::write_xlsx(adjusted_mH_summaries_dfm1, "Output/Sensitivity/Adjusted_healthonly_AA20261501.xlsx")
+
+```
+
+### Global Methylation
+
+```{r}
+## Create combinations of all outcomes and exposures
+var_combinations_gmHm1 <- func_var_combinations(exposure_vars, outcome_vars_gm)
+
+## Run the adjusted linear regression models and save results in new df
+adjusted_gmHm1 <- run_linear_models(var_combinations_gmHm1, data = complete_subset, covars = covars_health)
+adjusted_gmH_summaries_dfm1 <- models_summarize(var_combinations_gmHm1, adjusted_gmHm1)
+
+# Save as new dataframe
+saveRDS(adjusted_gmHm1, file = "Model_Diagnostics/adjusted_gm1healthonly20261501.RDS")
+
+## Export the data frame
+writexl::write_xlsx(adjusted_gmH_summaries_dfm1, "Output/Sensitivity/Adjusted_healthonly_GM20261501.xlsx")
+
+```
+
+## HEALTH, SOCIOECONOMIC, AND BEHAVIOR VARIABLES
+
+### Age Acceleration
+
+```{r}
+
+## Grew up in a rural area
+  ## Create combinations of all outcomes and exposures
+var_combinations_mruralh <- func_var_combinations(exposure_vars1, outcome_vars)
+
+  ## Run the adjusted linear regression models and save results in new df
+adjusted_mruralh <- run_linear_models(var_combinations_mruralh, data = complete_subset, covars = covars1)
+adjusted_mrural_summaries_dfh <- models_summarize(var_combinations_mruralh, adjusted_mruralh)
+
+# Save as new dataframe
+saveRDS(adjusted_mruralh, file = "Model_Diagnostics/adjusted_m2rural20261501.RDS")
+
+  ## Export the data frame
+writexl::write_xlsx(adjusted_mrural_summaries_dfh, "Output/Sensitivity/Adjusted_rural_M2_AA20261501.xlsx")
+
+
+
+## Years spent in school
+  ## Create combinations of all outcomes and exposures
+var_combinations_mschlyrsh <- func_var_combinations(exposure_vars2, outcome_vars)
+
+  ## Run the adjusted linear regression models and save results in new df
+adjusted_mschlyrsh <- run_linear_models(var_combinations_mschlyrsh, data = complete_subset, covars = covars2)
+adjusted_mschlyrs_summaries_dfh <- models_summarize(var_combinations_mschlyrsh, adjusted_mschlyrsh)
+
+# Save as new dataframe
+saveRDS(adjusted_mschlyrsh, file = "Model_Diagnostics/adjusted_m2schlyrs20261501.RDS")
+
+  ## Export the data frame
+writexl::write_xlsx(adjusted_mschlyrs_summaries_dfh, "Output/Sensitivity/Adjusted_SCHLYRS_M2_AA20261501.xlsx")
+
+
+
+## Live with a grandparent
+  ## Create combinations of all outcomes and exposures
+var_combinations_mlivegparh <- func_var_combinations(exposure_vars3, outcome_vars)
+
+  ## Run the adjusted linear regression models and save results in new df
+adjusted_mlivegparh <- run_linear_models(var_combinations_mlivegparh, data = complete_subset, covars = covars3)
+adjusted_mlivegpar_summaries_dfh <- models_summarize(var_combinations_mlivegparh, adjusted_mlivegparh)
+
+# Save as new dataframe
+saveRDS(adjusted_mlivegparh, file = "Model_Diagnostics/adjusted_m2livegpar20261501.RDS")
+
+  ## Export the data frame
+writexl::write_xlsx(adjusted_mlivegpar_summaries_dfh, "Output/Sensitivity/Adjusted_LIVEGPAR_M2_AA20261501.xlsx")
+
+
+
+## Smoking during childhood
+  ## Create combinations of all outcomes and exposures
+var_combinations_mchsmkh <- func_var_combinations(exposure_vars4, outcome_vars)
+
+  ## Run the adjusted linear regression models and save results in new df
+adjusted_mchsmkh <- run_linear_models(var_combinations_mchsmkh, data = complete_subset, covars = covars4)
+adjusted_mchsmk_summaries_dfh <- models_summarize(var_combinations_mchsmkh, adjusted_mchsmkh)
+
+# Save as new dataframe
+saveRDS(adjusted_mchsmkh, file = "Model_Diagnostics/adjusted_m2chsmk20261501.RDS")
+
+  ## Export the data frame
+writexl::write_xlsx(adjusted_mchsmk_summaries_dfh, "Output/Sensitivity/Adjusted_CHSMK_M2_AA20261501.xlsx")
+
+```
+
+### Global Methylation
+
+```{r}
+
+## Grew up in a rural area
+  ## Create combinations of all outcomes and exposures
+var_combinations_gmruralh <- func_var_combinations(exposure_vars1, outcome_vars_gm)
+
+  ## Run the adjusted linear regression models and save results in new df
+adjusted_gmruralh <- run_linear_models(var_combinations_gmruralh, data = complete_subset, covars = covars1)
+adjusted_gmrural_summaries_dfh <- models_summarize(var_combinations_gmruralh, adjusted_gmruralh)
+
+# Save as new dataframe
+saveRDS(adjusted_gmruralh, file = "Model_Diagnostics/adjusted_gm2rural20261501.RDS")
+
+# Export the data frame
+writexl::write_xlsx(adjusted_gmrural_summaries_dfh, "Output/Sensitivity/Adjusted_rural_M2_GM20261501.xlsx")
+
+
+
+## Years spent in school
+  ## Create combinations of all outcomes and exposures
+var_combinations_gmschlyrsh <- func_var_combinations(exposure_vars2, outcome_vars_gm)
+
+  ## Run the adjusted linear regression models and save results in new df
+adjusted_gmschlyrsh <- run_linear_models(var_combinations_gmschlyrsh, data = complete_subset, covars = covars2)
+adjusted_gmschlyrs_summaries_dfh <- models_summarize(var_combinations_gmschlyrsh, adjusted_gmschlyrsh)
+
+# Save as new dataframe
+saveRDS(adjusted_gmschlyrsh, file = "Model_Diagnostics/adjusted_gm2schlyrs20261501.RDS")
+
+  ## Export the data frame
+writexl::write_xlsx(adjusted_gmschlyrs_summaries_dfh, "Output/Sensitivity/Adjusted_SCHLYS_M2_GM20261501.xlsx")
+
+
+
+## Live with a grandparent
+  ## Create combinations of all outcomes and exposures
+var_combinations_gmlivegparh <- func_var_combinations(exposure_vars3, outcome_vars_gm)
+
+  ## Run the adjusted linear regression models and save results in new df
+adjusted_gmlivegparh <- run_linear_models(var_combinations_gmlivegparh, data = complete_subset, covars = covars3)
+adjusted_gmlivegpar_summaries_dfh <- models_summarize(var_combinations_gmlivegparh, adjusted_gmlivegparh)
+
+# Save as new dataframe
+saveRDS(adjusted_gmlivegparh, file = "Model_Diagnostics/adjusted_gm2livegpar20261501.RDS")
+
+  ## Export the data frame
+writexl::write_xlsx(adjusted_gmlivegpar_summaries_dfh, "Output/Sensitivity/Adjusted_LIVEGPAR_M2_GM20261501.xlsx")
+
+
+
+## Smoking during childhood
+  ## Create combinations of all outcomes and exposures
+var_combinations_gmchsmkh <- func_var_combinations(exposure_vars4, outcome_vars_gm)
+
+  ## Run the adjusted linear regression models and save results in new df
+adjusted_gmchsmkh <- run_linear_models(var_combinations_gmchsmkh, data = complete_subset, covars = covars4)
+adjusted_gmchsmk_summaries_dfh <- models_summarize(var_combinations_gmchsmkh, adjusted_gmchsmkh)
+
+# Save as new dataframe
+saveRDS(adjusted_gmchsmkh, file = "Model_Diagnostics/adjusted_gm2chsmk20261501.RDS")
+
+  ## Export the data frame
+writexl::write_xlsx(adjusted_gmchsmk_summaries_dfh, "Output/Sensitivity/Adjusted_CHSMK_M2_GM20261501.xlsx")
+
+```
+
+## EXPORT RESULTS
+
+```{r}
+
+## write results to single files
+sheets_dnamagesensAAGM = list('childrural(Health+Socioeconomic+Behavior AA)' = adjusted_mrural_summaries_dfh, 'SCHLYRS(Health+Socioeconomic+Behavior AA)' = adjusted_mschlyrs_summaries_dfh, 'LIVEGPAR(Health+Socioeconomic+Behavior AA)' = adjusted_mlivegpar_summaries_dfh, 'CHSMOKE(Health+Socioeconomic+Behavior AA)' = adjusted_mchsmk_summaries_dfh, 'childrural(Health+Socioeconomic+Behavior GM)' = adjusted_gmrural_summaries_dfh, 'SCHLYRS(Health+Socioeconomic+Behavior GM)' = adjusted_gmschlyrs_summaries_dfh, 'LIVEGPAR(Health+Socioeconomic+Behavior GM)' = adjusted_gmlivegpar_summaries_dfh, 'CHSMOKE(Health+Socioeconomic+Behavior GM)' = adjusted_gmchsmk_summaries_dfh)
+writexl::write_xlsx(sheets_dnamagesensAAGM, 'Output/Sensitivity/Adjusted_health_socioeconomic_behavior_AA-GM20261501.xlsx')
+
+```

@@ -1,0 +1,132 @@
+---
+title: "Forest Plots"
+author: "NK"
+date: "`r Sys.Date()`"
+format:
+  html:
+    code-overflow: wrap
+editor_options: 
+  chunk_output_type: console
+execute: 
+  fig-width: 18
+  fig-height: 12
+  fig-align: center
+---
+
+## LOAD PACKAGES
+
+```{r, results='hide', message=FALSE}
+
+library(readxl)
+library(car)
+library(forestplot)
+library(tidyverse)
+library(ggplot2)
+library(ggsci)
+library(patchwork)
+library(cowplot)
+
+```
+
+## READ IN DATA
+
+```{r, results='hide', message=FALSE}
+
+## Fully Adjusted Results
+adjusted_mrural_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/ChildRural_M3_AA_Summary20261501.xlsx")
+adjusted_gmrural_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/ChildRural_M3_GM_Summary20261501.xlsx")
+adjusted_mschlyrs_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/SCHLYRS_M3_AA_Summary20261501.xlsx")
+adjusted_gmschlyrs_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/SCHLYRS_M3_GM_Summary20261501.xlsx")
+adjusted_mlivegpar_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/LIVEGPAR_M3_AA_Summary20261501.xlsx")
+adjusted_gmlivegpar_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/LIVEGPAR_M3_GM_Summary20261501.xlsx")
+adjusted_mchsmk_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/CHSMK_M3_AA_Summary20261501.xlsx")
+adjusted_gmchsmk_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/CHSMK_M3_GM_Summary20261501.xlsx")
+
+```
+
+## LOAD IN FUNCTIONS
+
+```{r}
+
+source('ELE_DNAm_functions.R') 
+
+```
+
+## FOREST PLOTS: PRIMARY LINEAR REGRESSION RESULTS (Supplemental Figures 3
+
+```{r, warning=FALSE}
+
+## Define model terms to exclude for plotting
+terms_to_exclude <- c("(Intercept)", "age", "sexMale", "raceethnicity_collapsedNH-Black", "BEALE_latestSuburban", "BEALE_latestEx-urban",
+                      "Parent_Educ<High School", "ATOTB_latest",
+                      "raceethnicity_collapsedOther/Hispanic", "smoke_latestCurrent", "smoke_latestFormer", "HIBP_latestYes",
+                      "DIAB_latestYes", "VIGACT_collapsed1 per week/1-3 per month", "VIGACT_collapsedNever", "ds_latestCurrent", "ds_latestFormer",
+                      "GR", "NK", "B", "CD8", 
+                      "CD4", "Sample_Plate")
+
+## Age Acceleration
+  ## Create filtered data for plots
+filtered_df_adjusted_rural <- filtered_forest_plot_data(adjusted_mrural_summaries_df, terms_to_exclude)
+filtered_df_adjusted_schlyrs <- filtered_forest_plot_data(adjusted_mschlyrs_summaries_df, terms_to_exclude)
+filtered_df_adjusted_livegpar <- filtered_forest_plot_data(adjusted_mlivegpar_summaries_df, terms_to_exclude)
+filtered_df_adjusted_chsmk <- filtered_forest_plot_data(adjusted_mchsmk_summaries_df, terms_to_exclude)
+
+
+  ## Factor and add labels for plotting
+filtered_df_adjusted_rural$exposure <- factor(filtered_df_adjusted_rural$exposure, levels = c("CHSMOKE_R", "LIVEGPAR_R", "SCHLYRS_rev", "childrural_democoggen"), labels = c("Smoking during childhood", "Live with a grandparent", "Years in school", "Grew up in a rural area"))
+filtered_df_adjusted_rural$outcome <- factor(filtered_df_adjusted_rural$outcome, levels = rev(c("GRIM_residuals", "MPOA_residuals", "LEVINE_residuals", "HORVATH_residuals", "HANNUM_residuals")), labels = rev(c("GrimAge", "MPOA", "Levine", "Horvath", "Hannum")))
+
+filtered_df_adjusted_schlyrs$exposure <- factor(filtered_df_adjusted_schlyrs$exposure, levels = c("CHSMOKE_R", "LIVEGPAR_R", "SCHLYRS_rev", "childrural_democoggen"), labels = c("Smoking during childhood", "Live with a grandparent", "Years in school", "Grew up in a rural area"))
+filtered_df_adjusted_schlyrs$outcome <- factor(filtered_df_adjusted_schlyrs$outcome, levels = rev(c("GRIM_residuals", "MPOA_residuals", "LEVINE_residuals", "HORVATH_residuals", "HANNUM_residuals")), labels = rev(c("GrimAge", "MPOA", "Levine", "Horvath", "Hannum")))
+
+filtered_df_adjusted_livegpar$exposure <- factor(filtered_df_adjusted_livegpar$exposure, levels = c("CHSMOKE_R", "LIVEGPAR_R", "SCHLYRS_rev", "childrural_democoggen"), labels = c("Smoking during childhood", "Live with a grandparent", "Years in school", "Grew up in a rural area"))
+filtered_df_adjusted_livegpar$outcome <- factor(filtered_df_adjusted_livegpar$outcome, levels = rev(c("GRIM_residuals", "MPOA_residuals", "LEVINE_residuals", "HORVATH_residuals", "HANNUM_residuals")), labels = rev(c("GrimAge", "MPOA", "Levine", "Horvath", "Hannum")))
+
+filtered_df_adjusted_chsmk$exposure <- factor(filtered_df_adjusted_chsmk$exposure, levels = c("CHSMOKE_R", "LIVEGPAR_R", "SCHLYRS_rev", "childrural_democoggen"), labels = c("Smoking during childhood", "Live with a grandparent", "Years in school", "Grew up in a rural area"))
+filtered_df_adjusted_chsmk$outcome <- factor(filtered_df_adjusted_chsmk$outcome, levels = rev(c("GRIM_residuals", "MPOA_residuals", "LEVINE_residuals", "HORVATH_residuals", "HANNUM_residuals")), labels = rev(c("GrimAge", "MPOA", "Levine", "Horvath", "Hannum")))
+
+
+
+## Global Methylation
+  ## Create filtered data for plots
+filtered_df_adjusted_ruralGM <- filtered_forest_plot_data(adjusted_gmrural_summaries_df, terms_to_exclude)
+filtered_df_adjusted_schlyrsGM <- filtered_forest_plot_data(adjusted_gmschlyrs_summaries_df, terms_to_exclude)
+filtered_df_adjusted_livegparGM <- filtered_forest_plot_data(adjusted_gmlivegpar_summaries_df, terms_to_exclude)
+filtered_df_adjusted_chsmkGM <- filtered_forest_plot_data(adjusted_gmchsmk_summaries_df, terms_to_exclude)
+
+  ## Factor and add labels for plotting
+filtered_df_adjusted_ruralGM$exposure <- factor(filtered_df_adjusted_ruralGM$exposure, levels = c("CHSMOKE_R", "LIVEGPAR_R", "SCHLYRS_rev", "childrural_democoggen"), labels = c("Smoking during childhood", "Live with a grandparent", "Years in school", "Grew up in a rural area"))
+filtered_df_adjusted_schlyrsGM$exposure <- factor(filtered_df_adjusted_schlyrsGM$exposure, levels = c("CHSMOKE_R", "LIVEGPAR_R", "SCHLYRS_rev", "childrural_democoggen"), labels = c("Smoking during childhood", "Live with a grandparent", "Years in school", "Grew up in a rural area"))
+filtered_df_adjusted_livegparGM$exposure <- factor(filtered_df_adjusted_livegparGM$exposure, levels = c("CHSMOKE_R", "LIVEGPAR_R", "SCHLYRS_rev", "childrural_democoggen"), labels = c("Smoking during childhood", "Live with a grandparent", "Years in school", "Grew up in a rural area"))
+filtered_df_adjusted_chsmkGM$exposure <- factor(filtered_df_adjusted_chsmkGM$exposure, levels = c("CHSMOKE_R", "LIVEGPAR_R", "SCHLYRS_rev", "childrural_democoggen"), labels = c("Smoking during childhood", "Live with a grandparent", "Years in school", "Grew up in a rural area"))
+
+filtered_df_adjusted_ruralGM$outcome <- factor(filtered_df_adjusted_ruralGM$outcome, levels = c("OpenSea_mean", "Shore_mean", "Shelf_mean", "Island_mean", "globalmethylation"), labels = c("Open Sea methylation", "Shore methylation", "Shelf methylation", "Island methylation", "Global methylation"))
+filtered_df_adjusted_schlyrsGM$outcome <- factor(filtered_df_adjusted_schlyrsGM$outcome, levels = c("OpenSea_mean", "Shore_mean", "Shelf_mean", "Island_mean", "globalmethylation"), labels = c("Open Sea methylation", "Shore methylation", "Shelf methylation", "Island methylation", "Global methylation"))
+filtered_df_adjusted_livegparGM$outcome <- factor(filtered_df_adjusted_livegparGM$outcome, levels = c("OpenSea_mean", "Shore_mean", "Shelf_mean", "Island_mean", "globalmethylation"), labels = c("Open Sea methylation", "Shore methylation", "Shelf methylation", "Island methylation", "Global methylation"))
+filtered_df_adjusted_chsmkGM$outcome <- factor(filtered_df_adjusted_chsmkGM$outcome, levels = c("OpenSea_mean", "Shore_mean", "Shelf_mean", "Island_mean", "globalmethylation"), labels = c("Open Sea methylation", "Shore methylation", "Shelf methylation", "Island methylation", "Global methylation"))
+
+
+## Create One Forest Plot with All Exposures
+  ## Bind rows of filtered dfs from above
+combined_AA_forestplot <- bind_rows(filtered_df_adjusted_rural, filtered_df_adjusted_schlyrs, filtered_df_adjusted_livegpar, filtered_df_adjusted_chsmk)
+
+combined_GM_forestplot <- bind_rows(filtered_df_adjusted_ruralGM, filtered_df_adjusted_schlyrsGM, filtered_df_adjusted_livegparGM, filtered_df_adjusted_chsmkGM)
+
+
+## Get plot
+forest_plot_AA_ALLM3 <- forest_plot(combined_AA_forestplot)
+forest_plot_GM_ALLM3 <- forest_plotGM(combined_GM_forestplot)
+forest_plot_AA_ALLM3
+forest_plot_GM_ALLM3
+
+## Combine plots (Supplemental Figure 3)
+forest_plotcombined <- plot_grid(forest_plot_AA_ALLM3, forest_plot_GM_ALLM3, ncol = 2, align = "h", axis = "l")
+
+## Export
+save_plot("Manuscript/20261601/2026Feb05_supplfig3_forest_plots_m3_AA.svg", plot = forest_plot_AA_ALLM3, base_width = 18, base_height = 12)
+save_plot("Manuscript/20261601/2026Feb5_supplfig4_forest_plots_m3_GM.svg", plot = forest_plot_GM_ALLM3, base_width = 20, base_height = 12)
+
+save_plot("Manuscript/20261601/2026Feb05_supplfig3_combinedforest_plots_m3_AAGM.svg", plot = forest_plotcombined, base_width = 35, base_height = 10)
+
+
+```

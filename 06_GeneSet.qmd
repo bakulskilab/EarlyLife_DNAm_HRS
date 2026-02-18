@@ -1,0 +1,198 @@
+---
+title: "Gene Set Analysis"
+author: "Nita K"
+date: "`r Sys.Date()`"
+format:
+  html:
+    code-overflow: wrap
+editor_options: 
+  chunk_output_type: console
+execute: 
+  fig-align: center
+---
+
+#LOAD PACKAGES 
+
+```{r}
+
+library(tidyverse)
+library(dplyr)
+library(qs)
+library(ewastools)
+library(ggpubr)
+library(qqman)
+library(ggplot2)
+library(grid)
+library(IlluminaHumanMethylation450kanno.ilmn12.hg19)
+library(IlluminaHumanMethylationEPICanno.ilm10b4.hg19)
+library(methylGSA)
+
+```
+
+#IMPORT EWAS RESULTS
+
+```{r}
+
+# M1/Health Only
+load("Output/EWAS/resultsm1_childrural_hm.rda")
+h_rural <- results_rural_hannotated
+rm(results_rural_hannotated)
+
+load("Output/EWAS/resultsm1_schlyrs_h.rda")
+h_schlyrs <- results_schlyrs_hannotated
+rm(results_schlyrs_hannotated)
+
+load("Output/EWAS/resultsm1_livegpar_h.rda")
+h_livegpar <- results_livegpar_hannotated
+rm(results_livegpar_hannotated)
+
+load("Output/EWAS/resultsm1_chsmk_h.rda")
+h_chsmk <- results_chsmk_hannotated
+rm(results_chsmk_hannotated)
+
+
+# M2/Health, socioeconomic, and behavior Variables
+load("Output/EWAS/resultsm2_childrural_h2.rda")
+sh_rural <- results_rural_hannotated2
+rm(results_rural_hannotated2)
+
+load("Output/EWAS/resultsm2_schlyrs_h2.rda")
+sh_schlyrs <- results_schlyrs_hannotated2
+rm(results_schlyrs_hannotated2)
+
+load("Output/EWAS/resultsm2_livegpar_h2.rda")
+sh_livegpar <- results_livegpar_hannotated2
+rm(results_livegpar_hannotated2)
+
+load("Output/EWAS/resultsm2_chsmk_h2.rda")
+sh_chsmk <- results_chsmk_hannotated2
+rm(results_chsmk_hannotated2)
+
+
+# M3/Primary
+load("Output/EWAS/resultsm3_rural_ds8.rda")
+rural_smk_8 <- results_rural_ds8annotated
+rm(results_rural_ds8annotated)
+
+load("Output/EWAS/resultsm3_livegpar_ds10.rda")
+livegpar_smk_10 <- results_livegpar_ds10annotated
+rm(results_livegpar_ds10annotated)
+
+load("Output/EWAS/resultsm3_schlyrs_ds9.rda")
+schlyrs_m3 <- results_schlyrs_ds9annotated
+rm(results_schlyrs_ds9annotated)
+
+load("Output/EWAS/resultsm3_chsmk_ds.rda")
+chsmk_ds <- results_chsmk_dsannotated
+rm(results_chsmk_dsannotated)
+
+```
+
+## LOAD IN FUNCTIONS
+
+```{r}
+
+source('EWAS_function.R')
+
+```
+
+# GENE SET ENRICHMENT
+
+### M1/Health Only
+
+```{r}
+
+cpg_pvalues <- h_rural$P.Value
+names(cpg_pvalues) <- h_rural$CpG
+gsa_result1 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+cpg_pvalues <- h_schlyrs$P.Value
+names(cpg_pvalues) <- h_schlyrs$CpG
+gsa_result2 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+cpg_pvalues <- h_livegpar$P.Value
+names(cpg_pvalues) <- h_livegpar$CpG
+gsa_result3 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+cpg_pvalues <- h_chsmk$P.Value
+names(cpg_pvalues) <- h_chsmk$CpG
+gsa_result4 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+
+```
+
+### M2/Health, socioeconomic, and behavior Variables
+
+```{r}
+cpg_pvalues <- sh_rural$P.Value
+names(cpg_pvalues) <- h_rural$CpG
+gsa_result5 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+cpg_pvalues <- sh_schlyrs$P.Value
+names(cpg_pvalues) <- h_schlyrs$CpG
+gsa_result6 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+cpg_pvalues <- sh_livegpar$P.Value
+names(cpg_pvalues) <- h_livegpar$CpG
+gsa_result7 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+cpg_pvalues <- sh_chsmk$P.Value
+names(cpg_pvalues) <- h_chsmk$CpG
+gsa_result8 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+```
+
+### M3/Primary
+
+```{r}
+
+cpg_pvalues <- rural_smk_8$P.Value
+names(cpg_pvalues) <- rural_smk_8$CpG
+gsa_result9 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+cpg_pvalues <- schlyrs_m3$P.Value
+names(cpg_pvalues) <- schlyrs_m3$CpG
+gsa_result10 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+cpg_pvalues <- livegpar_smk_10$P.Value
+names(cpg_pvalues) <- livegpar_smk_10$CpG
+gsa_result11 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+cpg_pvalues <- chsmk_ds$P.Value
+names(cpg_pvalues) <- chsmk_ds$CpG
+gsa_result12 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
+                               array.type = "EPIC",
+                               method = "GSEA")
+
+```
+
+## EXPORT
+
+```{r}
+
+sheets_methylGSA = list('childrural(Health)' = gsa_result1, 'childrural(Health+Socioeconomic+Behavior)' = gsa_result5, 'childrural(Primary)' = gsa_result9, 'SCHLYRS(Health)' = gsa_result2, 'SCHLYRS(Health+Socioeconomic+Behavior)' = gsa_result6, 'SCHLYRS(Primary)' = gsa_result10, 'LIVEGPAR(Health)' = gsa_result3, 'LIVEGPAR(Health+Socioeconomic+Behavior)' = gsa_result7, 'LIVEGPAR(Primary)' = gsa_result11, 'CHSMOKE(Health)' = gsa_result4, 'CHSMOKE(Health+Socioeconomic+Behavior)' = gsa_result8, 'CHSMOKE(Primary)' = gsa_result12)
+writexl::write_xlsx(sheets_methylGSA, 'Manuscript/EWAS/Supplemental Table 10-Gene Ontology Pathway Enrichment Results.xlsx')
+
+```

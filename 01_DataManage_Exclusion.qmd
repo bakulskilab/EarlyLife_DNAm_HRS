@@ -1,0 +1,712 @@
+---
+title: "Data Management and Exclusion"
+author: "NK"
+date: "`r Sys.Date()`"
+format:
+  html:
+    code-overflow: wrap
+editor_options: 
+  chunk_output_type: console
+---
+
+## LOAD PACKAGES
+
+```{r, results='hide', message=FALSE}
+
+library(tidyverse)
+library(tibble)
+library(readxl)
+library(summarytools)
+library(sjlabelled)
+library(labelled)
+library(qs)
+library(tidycomm)
+
+```
+
+## LOAD DATASETS & SUBSET
+
+```{r, results='hide', message=FALSE}
+
+## Read in DNA methylation meta file 
+Oct24_meta <- qread("Datasets/OCT_24meta.qs") 
+## Select columns of interest
+Oct24_meta <- select(Oct24_meta, 'HH_ID', 'PN', 'Sample_Name', 'Sample_Well', 'Sample_Plate', 'Basename', 'GR', 'NK', 'B', 'CD4', 'CD8', 'MO', 'exclude')
+## Remove basename rows
+row.names(Oct24_meta) <- NULL
+
+
+## Read in Global Methylation file
+globalM_OCT24 <- read_csv("Datasets/globalmethylationOCT24_summary.csv")
+## Select columns of interest
+globalM_OCT24 <- select(globalM_OCT24, 'Basename', 'globalmethylation', 'Island_mean', 'OpenSea_mean', 'Shelf_mean', 'Shore_mean')
+
+
+## Read in covariate files 
+load("Datasets/hrs_combine_wide.RData")
+load("Datasets/randhrs1992_2018v1.rda")
+## Select columns of interest
+hrs_combine_wide <- select(hrs_combine_wide, 'HHIDPN', 'gender', 'race', 'hispanic', 'education', 'smoke2008', 'smoke2010', 'smoke2012', 'smoke2014', 'smoke2016', 'drink_status2008', 'drink_status2010', 'drink_status2012', 'drink_status2014', 'drink_status2016', 'drink_quant2008', 'drink_quant2010', 'drink_quant2012', 'drink_quant2014', 'drink_quant2016', 'heavey_drink2008', 'heavey_drink2010', 'heavey_drink2012', 'heavey_drink2014', 'heavey_drink2016')
+rand92_2018V1 = randhrs1992_2018v1
+rm(randhrs1992_2018v1)
+rand92_2018V1 <- select(rand92_2018V1, 'HHID', 'PN', 'R13HIBPE', 'R12HIBPE', 'R11HIBPE', 'R10HIBPE', 'R9HIBPE', 'R13DIABE', 'R12DIABE', 'R11DIABE', 'R10DIABE', 'R9DIABE', 'H9ATOTB', 'H10ATOTB', 'H11ATOTB', 'H12ATOTB', 'H13ATOTB', 'R13MDACTX', 'R12MDACTX', 'R11MDACTX', 'R10MDACTX', 'R9MDACTX', 'R13LTACTX', 'R12LTACTX', 'R11LTACTX', 'R10LTACTX', 'R9LTACTX', 'R13VGACTX', 'R12VGACTX', 'R11VGACTX', 'R10VGACTX', 'R9VGACTX')
+
+
+## Read in exposure and additional covariate file
+  ## Internal merged file 
+load("Datasets/hrs_democoggen_wide20200910.Rda")
+  ## Sourced from: https://hrs.isr.umich.edu/sites/default/files/meta/xyear/childfamhealth/codebook/aggchldfh2016a_ri.htm
+  ## Methodology: https://hrsdata.isr.umich.edu/sites/default/files/documentation/data-descriptions/ChildhoodHealthAndFamily.pdf
+chf <- read_xlsx("Datasets/AGCHFH16.xlsx")
+## Select columns of interest
+hrs_democoggen_wide <- select(hrs0910, 'HHID', 'PN', 'childrural', 'SCHLYRS', 'BEALE2013_08', 'BEALE2013_10', 'BEALE2013_12', 'BEALE2013_14', 'Parent_Education')
+rm(hrs0910)
+chf <- select(chf, 'HHID', 'PN', 'LIVEGPAR', 'CHSMOKE')
+
+
+## Read in outcome and additional covariate file
+load("Datasets/full_labelled.RData")
+## Select columns of interest
+full.labelled <- select(full.labelled, 'HHID', 'PN', 'age', 'race.ethnicity', 'sex', 'BIRTHYR', 'HORVATH_DNAMAGE', 'HANNUM_DNAMAGE', 
+'LEVINE_DNAMAGE', 'DNAMGRIMAGE', 'MPOA')
+
+```
+
+## DATA WRANGLING
+
+```{r}
+
+## Format participant ID columns for merging
+  ## hrs_democoggen_wide (all leading zeros for HHID and PN)
+hrs_democoggen_wide$HHID<- as.numeric(hrs_democoggen_wide$HHID)
+hrs_democoggen_wide$HHIDPN <- paste0(hrs_democoggen_wide$HHID, hrs_democoggen_wide$PN)
+hrs_democoggen_wide<- select(hrs_democoggen_wide, HHIDPN, everything())
+
+
+  ## HRS_DNAm_meta (intermittent leading zero for HHID, 1 leading zero PN)
+Oct24_meta$HH_ID<- as.numeric(Oct24_meta$HH_ID)
+Oct24_meta$HHIDPN<- paste0(Oct24_meta$HH_ID, Oct24_meta$PN)
+Oct24_meta<- select(Oct24_meta, HHIDPN, everything())
+
+
+  ## Additional ELE data CHF dataset (intermittent leading zero for HHID, 1 leading zero PN)
+chf$HHID <- as.numeric(chf$HHID)
+chf$HHIDPN <- paste0(chf$HHID, chf$PN)
+chf <- select(chf, HHIDPN, everything())
+
+
+  ## Outcome data & additional covariates
+full.labelled$HHID <- as.numeric(full.labelled$HHID)
+full.labelled$HHIDPN<- paste0(full.labelled$HHID, full.labelled$PN)
+full.labelled<- select(full.labelled, HHIDPN, everything())
+
+rand92_2018V1$HHID <- as.numeric(rand92_2018V1$HHID)
+rand92_2018V1$HHIDPN<- paste0(rand92_2018V1$HHID, rand92_2018V1$PN)
+rand92_2018V1<- select(rand92_2018V1, HHIDPN, everything())
+
+
+  ## Check class new HHIDPN variables
+class(chf$HHIDPN)
+class(full.labelled$HHIDPN)
+class(rand92_2018V1$HHIDPN)
+class(hrs_democoggen_wide$HHIDPN)
+class(Oct24_meta$HHIDPN)
+class(hrs_combine_wide$HHIDPN)
+class(Oct24_meta$Basename)
+class(globalM_OCT24$Basename)
+
+
+  ## Convert hrs_combine_wide to character
+hrs_combine_wide$HHIDPN<- as.character(hrs_combine_wide$HHIDPN)
+
+
+## Merge cell composition df with HRS meta file 
+Oct24_metaGM <- full_join(Oct24_meta, globalM_OCT24, by = "Basename")
+dim(Oct24_metaGM)
+
+
+## Merge above with hrs_combine_wide
+HRS_DNAm_meta_Cell2 <- left_join(Oct24_metaGM, hrs_combine_wide, by = "HHIDPN")
+dim(HRS_DNAm_meta_Cell2)
+  ## Check merge
+dfSummary(HRS_DNAm_meta_Cell2$heavey_drink2016)
+
+
+## Merge above with hrs_democoggen_wide 
+HRS_DNAm_meta_Cell4 <- left_join(HRS_DNAm_meta_Cell2, hrs_democoggen_wide, by = "HHIDPN")
+dim(HRS_DNAm_meta_Cell4)
+  ## Check merge
+dfSummary(HRS_DNAm_meta_Cell4$BEALE2013_10)
+dfSummary(HRS_DNAm_meta_Cell4$heavey_drink2016)
+dfSummary(HRS_DNAm_meta_Cell4$race)
+dfSummary(HRS_DNAm_meta_Cell4$Parent_Education)
+
+
+## Merge above with chf 
+HRS_DNAm_meta_Cell7 <- left_join(HRS_DNAm_meta_Cell4, chf, by ="HHIDPN")
+dim(HRS_DNAm_meta_Cell7)
+  ## Check merge
+dfSummary(HRS_DNAm_meta_Cell7$race)
+dfSummary(HRS_DNAm_meta_Cell7$hispanic)
+dfSummary(HRS_DNAm_meta_Cell7$childrural) 
+dfSummary(HRS_DNAm_meta_Cell7$SCHLYRS) 
+dfSummary(HRS_DNAm_meta_Cell7$CHSMOKE) 
+dfSummary(HRS_DNAm_meta_Cell7$LIVEGPAR) 
+
+
+## Merge above with full.labelled
+HRS_DNAm_meta_Cell8 <- left_join(HRS_DNAm_meta_Cell7, full.labelled, by ="HHIDPN")
+dim(HRS_DNAm_meta_Cell8)
+
+
+## Merge above with rand92_2018V1
+HRS_DNAm_meta_Cell9 <- left_join(HRS_DNAm_meta_Cell8, rand92_2018V1, by ="HHIDPN")
+dim(HRS_DNAm_meta_Cell9)
+
+```
+
+## SAVE NEW DATASETS
+
+```{r}
+
+saveRDS(Oct24_meta, file = "NewData/HRS_DNAm_meta_nk20261601.RDS")
+
+saveRDS(hrs_combine_wide, file = "NewData/hrs_combine_wide_nk20261601.RDS")
+
+saveRDS(hrs_democoggen_wide, file = "NewData/hrs_democoggen_wide_nk20261601.RDS")
+
+saveRDS(globalM_OCT24, file = "NewData/global_methylation_nk20261601.RDS")
+
+saveRDS(chf, file = "NewData/chf_nk20261601.RDS")
+
+saveRDS(full.labelled, file = "NewData/full.labelled_nk20261601.RDS")
+
+saveRDS(rand92_2018V1, file = "NewData/rand92_2018V1_nk20261601.RDS")
+
+rm(chf, full.labelled, hrs_democoggen_wide, rand92_2018V1, globalM_OCT24, hrs_combine_wide, Oct24_meta, Oct24_metaGM, HRS_DNAm_meta_Cell2, HRS_DNAm_meta_Cell4, HRS_DNAm_meta_Cell7, HRS_DNAm_meta_Cell8)
+
+```
+
+## VARIABLE FACTOR AND RECODING
+
+```{r}
+
+  ## Create a collapsed race/ethnicity variable for regression models (combine NH-Other and Hispanic groups)
+dfSummary(HRS_DNAm_meta_Cell9$race.ethnicity)
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(raceethnicity_collapsed = case_when(
+race.ethnicity == "NH-White"~ "NH-White",
+race.ethnicity == "NH-Black"~ "NH-Black",
+race.ethnicity == "NH-Other"~ "Other/Hispanic",
+race.ethnicity == "Hispanic"~ "Other/Hispanic"))
+HRS_DNAm_meta_Cell9$raceethnicity_collapsed <- ordered(HRS_DNAm_meta_Cell9$raceethnicity_collapsed, levels = c("NH-White", "NH-Black", "Other/Hispanic"))
+dfSummary(HRS_DNAm_meta_Cell9$raceethnicity_collapsed)
+HRS_DNAm_meta_Cell9$raceethnicity_collapsed = set_label(HRS_DNAm_meta_Cell9$raceethnicity_collapsed, label = ("Race/ethnicity"))
+
+
+## Factor and recode Levels of grew up in a rural area (childrural_democoggen: 1 = YES, 5 = NO, 8 = NA)
+HRS_DNAm_meta_Cell9$childrural_democoggen <- factor(HRS_DNAm_meta_Cell9$childrural, levels = c(1,5), labels = c("Yes", "No"))
+table(HRS_DNAm_meta_Cell9$childrural, HRS_DNAm_meta_Cell9$childrural_democoggen)
+dfSummary(HRS_DNAm_meta_Cell9$childrural)
+dfSummary(HRS_DNAm_meta_Cell9$childrural_democoggen)
+
+
+## Factor and Recode Levels of childhood smoking (CHSMOKE_R: 1 = YES, 5 = NO)
+HRS_DNAm_meta_Cell9$CHSMOKE_R <- factor(HRS_DNAm_meta_Cell9$CHSMOKE, levels = c(1,5), labels =  c("Yes", "No"))
+dfSummary(HRS_DNAm_meta_Cell9$CHSMOKE)
+dfSummary(HRS_DNAm_meta_Cell9$CHSMOKE_R)
+
+
+## Factor and Recode Levels of live with a grandparent (LIVEGPAR: 1 = YES, 5 = NO, 8 = NA)
+HRS_DNAm_meta_Cell9$LIVEGPAR[HRS_DNAm_meta_Cell9$LIVEGPAR == "8"] <- NA
+HRS_DNAm_meta_Cell9$LIVEGPAR_R <- factor(HRS_DNAm_meta_Cell9$LIVEGPAR, levels = c(1,5), labels = c("Yes", "No"))
+dfSummary(HRS_DNAm_meta_Cell9$LIVEGPAR)
+dfSummary(HRS_DNAm_meta_Cell9$LIVEGPAR_R)
+
+
+## Recode/Factor: Covariates
+## Life course behavior and socioeconomic variables: Uses responses from 2016 and if missing takes the next valid response 
+  ## Drink Status
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% 
+  mutate(ds_latest = coalesce(drink_status2016, drink_status2014, drink_status2012, drink_status2010, drink_status2008)
+)
+dfSummary(HRS_DNAm_meta_Cell9$ds_latest)
+HRS_DNAm_meta_Cell9$ds_latest <- factor(HRS_DNAm_meta_Cell9$ds_latest, levels = c(0, 1, 2), labels = c("Never", "Former", "Current"))
+table(HRS_DNAm_meta_Cell9$ds_latest)
+
+
+  ## Smoking Status
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% 
+  mutate(smoke_latest = coalesce(smoke2016, smoke2014, smoke2012, smoke2010, smoke2008)
+)
+dfSummary(HRS_DNAm_meta_Cell9$smoke_latest)
+HRS_DNAm_meta_Cell9$smoke_latest <- factor(HRS_DNAm_meta_Cell9$smoke_latest, levels = c(0, 1, 2), labels = c("Never", "Former", "Current"))
+table(HRS_DNAm_meta_Cell9$smoke_latest)
+
+
+  ## BEALE (Urban-Rural Status)
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% 
+  mutate(BEALE_latest = coalesce(BEALE2013_14, BEALE2013_12, BEALE2013_10, BEALE2013_08)
+)
+dfSummary(HRS_DNAm_meta_Cell9$BEALE_latest)
+HRS_DNAm_meta_Cell9$BEALE_latest <- factor(HRS_DNAm_meta_Cell9$BEALE_latest, levels = c(1,2, 3), labels = c("Urban", "Suburban", "Ex-urban"))
+table(HRS_DNAm_meta_Cell9$BEALE_latest)
+
+
+  ## Total Household Assets
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% 
+  mutate(ATOTB_latest = coalesce(H13ATOTB, H12ATOTB, H11ATOTB, H10ATOTB, H9ATOTB)
+)
+dfSummary(HRS_DNAm_meta_Cell9$ATOTB_latest)
+
+
+## Adult health variables: Uses responses from 2016 and if missing takes the next valid response 
+  ## High Blood Pressure
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% 
+  mutate(HIBP_latest = coalesce(R13HIBPE, R12HIBPE, R11HIBPE, R10HIBPE, R9HIBPE)
+)
+dfSummary(HRS_DNAm_meta_Cell9$HIBP_latest)
+HRS_DNAm_meta_Cell9$HIBP_latest <- factor(HRS_DNAm_meta_Cell9$HIBP_latest, levels = c(0,1), labels = c("No", "Yes"))
+table(HRS_DNAm_meta_Cell9$HIBP_latest)
+
+
+  ## Diabetes
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% 
+  mutate(DIAB_latest = coalesce(R13DIABE, R12DIABE, R11DIABE, R10DIABE, R9DIABE)
+)
+dfSummary(HRS_DNAm_meta_Cell9$DIAB_latest)
+HRS_DNAm_meta_Cell9$DIAB_latest <- factor(HRS_DNAm_meta_Cell9$DIAB_latest, levels = c(0,1), labels = c("No", "Yes"))
+table(HRS_DNAm_meta_Cell9$DIAB_latest)
+
+
+  ## Vigorous Physical Activity
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% 
+  mutate(VIGACT_latest = coalesce(R13VGACTX, R12VGACTX, R11VGACTX, R10VGACTX, R9VGACTX)
+)
+dfSummary(HRS_DNAm_meta_Cell9$VIGACT_latest)
+
+
+## Collapse variable categories
+  ## Collapse VIGACT_latest to Never = 0, Every day/>1 per week = 1, 1 per week/1-3 per month = 2
+  ## "Every Day", ">1 per week", "1 per week", "1-3 per month", "never"
+  ## 1, 2, 3, 4, 5
+table(HRS_DNAm_meta_Cell9$VIGACT_latest, useNA = "always")
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(VIGACT_collapsed = case_when(
+  VIGACT_latest == 5 ~ 0,
+  VIGACT_latest == 1 ~ 1,
+  VIGACT_latest == 2 ~ 1,
+  VIGACT_latest == 3 ~ 2, 
+  VIGACT_latest == 4 ~ 2))
+
+table(HRS_DNAm_meta_Cell9$VIGACT_collapsed, useNA = "always")
+HRS_DNAm_meta_Cell9$VIGACT_collapsed <- factor(HRS_DNAm_meta_Cell9$VIGACT_collapsed, 
+                                       levels = c(0,1,2), 
+                                       labels= c("Never",
+                                                 "Every day/>1 per week",
+                                                 "1 per week/1-3 per month"))
+
+table(HRS_DNAm_meta_Cell9$VIGACT_collapsed, HRS_DNAm_meta_Cell9$VIGACT_latest) 
+
+
+  ## Create SCHLYRS categorical
+  ## Less than High School (SCHLYRS<12), High school and more (SCHLYRS>=12)
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(SCHLYRS_cat = ifelse((SCHLYRS >= 12), 1, 0))
+
+HRS_DNAm_meta_Cell9$SCHLYRS_cat <- factor(HRS_DNAm_meta_Cell9$SCHLYRS_cat, levels = c(0,1), labels=
+                                   c("Less than 12 years", "12 or more years"))
+
+table(HRS_DNAm_meta_Cell9$SCHLYRS_cat, useNA = "always")
+
+
+  ## Create global methylation categorical (high vs low --> use a cutoff of ~59.34 based on variable median) 
+summary(HRS_DNAm_meta_Cell9$globalmethylation)
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(globalmethylation_cat = ifelse((globalmethylation > 59.34), 1, 0))
+HRS_DNAm_meta_Cell9$globalmethylation_cat <- factor(HRS_DNAm_meta_Cell9$globalmethylation_cat, levels = c(0,1), labels = c("Low", "High"))
+table(HRS_DNAm_meta_Cell9$globalmethylation_cat)
+
+
+  ## Island (high vs low --> use a cutoff of ~18.09 based on variable mean) 
+summary(HRS_DNAm_meta_Cell9$Island_mean)
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(Island_mean_cat = ifelse((Island_mean > 18.09), 1, 0))
+HRS_DNAm_meta_Cell9$Island_mean_cat <- factor(HRS_DNAm_meta_Cell9$Island_mean_cat, levels = c(0,1), labels = c("Low", "High"))
+table(HRS_DNAm_meta_Cell9$Island_mean_cat)
+
+
+  ## Open Sea (high vs low --> use a cutoff of ~76.90 based on variable mean) 
+summary(HRS_DNAm_meta_Cell9$OpenSea_mean)
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(OpenSea_mean_cat = ifelse((OpenSea_mean > 76.90), 1, 0))
+HRS_DNAm_meta_Cell9$OpenSea_mean_cat <- factor(HRS_DNAm_meta_Cell9$OpenSea_mean_cat, levels = c(0,1), labels =  c("Low", "High"))
+table(HRS_DNAm_meta_Cell9$OpenSea_mean_cat)
+
+
+  ## Shelf (high vs low --> use a cutoff of ~78.66 based on variable mean) 
+summary(HRS_DNAm_meta_Cell9$Shelf_mean)
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(Shelf_mean_cat = ifelse((Shelf_mean > 78.66), 1, 0))
+HRS_DNAm_meta_Cell9$Shelf_mean_cat <- factor(HRS_DNAm_meta_Cell9$Shelf_mean_cat, levels = c(0,1), labels = c("Low", "High"))
+table(HRS_DNAm_meta_Cell9$Shelf_mean_cat)
+
+
+  ## Shore (high vs low --> use a cutoff of ~48.92 based on variable mean) 
+summary(HRS_DNAm_meta_Cell9$Shore_mean)
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(Shore_mean_cat = ifelse((Shore_mean > 48.92), 1, 0))
+HRS_DNAm_meta_Cell9$Shore_mean_cat <- factor(HRS_DNAm_meta_Cell9$Shore_mean_cat, levels = c(0,1), labels = c("Low", "High"))
+table(HRS_DNAm_meta_Cell9$Shore_mean_cat)
+
+
+  ## Factor Parent education (Parent_Education) variable
+HRS_DNAm_meta_Cell9$Parent_Educ <- factor(HRS_DNAm_meta_Cell9$Parent_Education, levels = c(0,1), labels = c("High School & Beyond", "<High School"))
+dfSummary(HRS_DNAm_meta_Cell9$Parent_Educ)
+dfSummary(HRS_DNAm_meta_Cell9$Parent_Education)
+
+
+  ## Create reverse code of SCHLYRS variable
+summary(HRS_DNAm_meta_Cell9$SCHLYRS)
+HRS_DNAm_meta_Cell9 <- as_tibble(HRS_DNAm_meta_Cell9)
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% reverse_scale(SCHLYRS, 
+                                                             name = "SCHLYRS_rev",
+                                                             lower_end = 0,
+                                                             upper_end = 17) 
+
+```
+
+## CHECK RESPONSE AND SET REFERENCE LEVELS
+
+```{r}
+
+## Filter dataset to remove NA's from variables of interest
+complete_7smk <- HRS_DNAm_meta_Cell9 %>% 
+  filter(!(exclude == "TRUE")) %>%
+  filter(!is.na(globalmethylation)) %>%
+  filter(!is.na(Island_mean)) %>%
+  filter(!is.na(OpenSea_mean)) %>%
+  filter(!is.na(Shelf_mean)) %>%
+  filter(!is.na(Shore_mean)) %>%
+  filter(!is.na(age)) %>%
+  filter(!is.na(sex)) %>%
+  filter(!is.na(race.ethnicity)) %>%
+  filter(!is.na(childrural_democoggen)) %>% 
+  filter(!is.na(SCHLYRS)) %>% 
+  filter(!is.na(CHSMOKE_R)) %>% 
+  filter(!is.na(LIVEGPAR_R)) %>%
+  filter(!is.na(ds_latest)) %>% 
+  filter(!is.na(smoke_latest)) %>%  
+  filter(!is.na(BEALE_latest)) %>% 
+  filter(!is.na(HORVATH_DNAMAGE)) %>% 
+  filter(!is.na(HANNUM_DNAMAGE)) %>% 
+  filter(!is.na(LEVINE_DNAMAGE)) %>% 
+  filter(!is.na(DNAMGRIMAGE)) %>%
+  filter(!is.na(MPOA)) %>%
+  filter(!is.na(GR)) %>%
+  filter(!is.na(B)) %>%
+  filter(!is.na(NK)) %>%
+  filter(!is.na(CD4)) %>%
+  filter(!is.na(CD8)) %>%
+  filter(!is.na(MO)) %>%
+  filter(!is.na(HIBP_latest)) %>% 
+  filter(!is.na(DIAB_latest)) %>%
+  filter(!is.na(VIGACT_collapsed)) %>%
+  filter(!is.na(ATOTB_latest)) %>%
+  filter(!is.na(Parent_Educ)) %>% 
+  mutate(included = 1)   #give variable called included a value of 1 if the above variables are not missing
+
+
+## Check concordance of child smoking and adult smoking
+table(complete_7smk$CHSMOKE, complete_7smk$smoke2016) #7 people reported childhood smoking but Never adult smoking (drop them)
+
+  ## Define the HHIDPN numbers to drop (n=7)
+complete_7smk %>% group_by(HHIDPN) %>% 
+   filter(smoke_latest == "Never" & CHSMOKE_R == "Yes") %>%
+   ungroup
+hhidpn_to_mark_na <- c(526030020, 33566020, 177906010, 76697040, 60880010, 54616040, 54796010)  
+
+
+## Create new logical flag column 'flag_for_exclusion' and set to TRUE for specified HHIDPNs
+HRS_DNAm_meta_Cell9$flag_for_exclusion <- HRS_DNAm_meta_Cell9$HHIDPN %in% hhidpn_to_mark_na
+dfSummary(HRS_DNAm_meta_Cell9$flag_for_exclusion)
+
+
+## Setting reference levels for categorical variables 
+HRS_DNAm_meta_Cell9$smoke_latest <- ordered(HRS_DNAm_meta_Cell9$smoke_latest, levels = c("Current", "Former", "Never"))
+HRS_DNAm_meta_Cell9$ds_latest <- ordered(HRS_DNAm_meta_Cell9$ds_latest, levels = c("Current", "Former", "Never"))
+HRS_DNAm_meta_Cell9$HIBP_latest <- ordered(HRS_DNAm_meta_Cell9$HIBP_latest, levels = c("Yes", "No"))
+HRS_DNAm_meta_Cell9$DIAB_latest <- ordered(HRS_DNAm_meta_Cell9$DIAB_latest, levels = c("Yes", "No"))
+HRS_DNAm_meta_Cell9$VIGACT_collapsed <- ordered(HRS_DNAm_meta_Cell9$VIGACT_collapsed, levels = c("Every day/>1 per week", "1 per week/1-3 per month", "Never"))
+HRS_DNAm_meta_Cell9$CHSMOKE_R <- ordered(HRS_DNAm_meta_Cell9$CHSMOKE_R, levels = c("Yes", "No"))
+HRS_DNAm_meta_Cell9$childrural_democoggen <- ordered(HRS_DNAm_meta_Cell9$childrural_democoggen, levels = c("Yes", "No"))
+HRS_DNAm_meta_Cell9$LIVEGPAR_R <- ordered(HRS_DNAm_meta_Cell9$LIVEGPAR_R, levels = c("Yes", "No"))
+
+
+rm(complete_7smk, hhidpn_to_mark_na)
+
+```
+
+#CREATE DNAM AGE ACCELERATION VARIABLES AMONG ENTIRE HRS METHYLATION SAMPLE (4,018)
+
+```{r}
+
+#Get outcome variable: Residuals & Acceleration
+  ##Code from: https://github.com/bakulskilab/Depressive-DNAm-Acceleration/blob/main/01_Data_management_HW.R
+  ##Age acceleration based on GrimAge
+HRS_DNAm_meta_Cell9$GRIM_residuals <- residuals(lm(DNAMGRIMAGE ~ age, data = HRS_DNAm_meta_Cell9, na.action = na.exclude))
+summary(HRS_DNAm_meta_Cell9$GRIM_residuals)
+
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(GRIMAccel = ifelse((GRIM_residuals > 0), 1, 0))
+HRS_DNAm_meta_Cell9$GRIMAccel <- factor(HRS_DNAm_meta_Cell9$GRIMAccel, levels = c(0,1), labels = c("Age not accelerated", "Age accelerated"))
+table(HRS_DNAm_meta_Cell9$GRIMAccel)
+
+
+  ## Age acceleration based on HORVATH
+HRS_DNAm_meta_Cell9$HORVATH_residuals <- residuals(lm(HORVATH_DNAMAGE ~ age, data = HRS_DNAm_meta_Cell9, na.action = na.exclude))
+summary(HRS_DNAm_meta_Cell9$HORVATH_residuals)
+
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(HORVATHAccel = ifelse((HORVATH_residuals > 0), 1, 0))
+HRS_DNAm_meta_Cell9$HORVATHAccel <- factor(HRS_DNAm_meta_Cell9$HORVATHAccel, levels = c(0,1), labels =  c("Age not accelerated", "Age accelerated"))
+table(HRS_DNAm_meta_Cell9$HORVATHAccel)
+
+
+  ## Age acceleration based on LEVINE
+HRS_DNAm_meta_Cell9$LEVINE_residuals <- residuals(lm(LEVINE_DNAMAGE ~ age, data = HRS_DNAm_meta_Cell9, na.action = na.exclude))
+summary(HRS_DNAm_meta_Cell9$LEVINE_residuals)
+
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(LEVINEAccel = ifelse((LEVINE_residuals > 0), 1, 0))
+HRS_DNAm_meta_Cell9$LEVINEAccel <- factor(HRS_DNAm_meta_Cell9$LEVINEAccel, levels = c(0,1), labels = c("Age not accelerated", "Age accelerated"))
+table(HRS_DNAm_meta_Cell9$LEVINEAccel)
+
+
+  ## Age acceleration based on MPOA (transform prior to accel)
+HRS_DNAm_meta_Cell9$MPOA_residuals <- residuals(lm(MPOA*age ~ age, data = HRS_DNAm_meta_Cell9, na.action = na.exclude))
+summary(HRS_DNAm_meta_Cell9$MPOA_residuals)
+
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(MPOAAccel = ifelse((MPOA_residuals > 0), 1, 0))
+HRS_DNAm_meta_Cell9$MPOAAccel <- factor(HRS_DNAm_meta_Cell9$MPOAAccel, levels = c(0,1), labels = c("Age not accelerated", "Age accelerated"))
+table(HRS_DNAm_meta_Cell9$MPOAAccel)
+
+
+  ## Age acceleration based on HANNUM
+HRS_DNAm_meta_Cell9$HANNUM_residuals <- residuals(lm(HANNUM_DNAMAGE ~ age, data = HRS_DNAm_meta_Cell9, na.action = na.exclude))
+summary(HRS_DNAm_meta_Cell9$HANNUM_residuals)
+
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(HANNUMAccel = ifelse((HANNUM_residuals > 0), 1, 0))
+HRS_DNAm_meta_Cell9$HANNUMAccel <- factor(HRS_DNAm_meta_Cell9$HANNUMAccel, levels = c(0,1), labels =  c("Age not accelerated", "Age accelerated"))
+table(HRS_DNAm_meta_Cell9$HANNUMAccel)
+
+```
+
+## FILTER DATA & GET COMPLETE ANALYTIC SAMPLE
+
+```{r}
+
+## Filter and check for number of NA's among variables you want to get exclusions for
+complete <- HRS_DNAm_meta_Cell9 %>% 
+  filter(!(exclude == "TRUE")) %>%
+  filter(!(flag_for_exclusion == "TRUE")) %>%
+  filter(!is.na(globalmethylation)) %>%
+  filter(!is.na(Island_mean)) %>%
+  filter(!is.na(OpenSea_mean)) %>%
+  filter(!is.na(Shelf_mean)) %>%
+  filter(!is.na(Shore_mean)) %>%
+  filter(!is.na(age)) %>%
+  filter(!is.na(sex)) %>%
+  filter(!is.na(race.ethnicity)) %>%
+  filter(!is.na(childrural_democoggen)) %>% 
+  filter(!is.na(SCHLYRS)) %>% 
+  filter(!is.na(SCHLYRS_cat)) %>%
+  filter(!is.na(CHSMOKE_R)) %>% 
+  filter(!is.na(LIVEGPAR_R)) %>%
+  filter(!is.na(ds_latest)) %>% 
+  filter(!is.na(smoke_latest)) %>%  
+  filter(!is.na(BEALE_latest)) %>% 
+  filter(!is.na(HORVATH_DNAMAGE)) %>% 
+  filter(!is.na(HANNUM_DNAMAGE)) %>% 
+  filter(!is.na(LEVINE_DNAMAGE)) %>% 
+  filter(!is.na(DNAMGRIMAGE)) %>%
+  filter(!is.na(MPOA)) %>%
+  filter(!is.na(GR)) %>%
+  filter(!is.na(B)) %>%
+  filter(!is.na(NK)) %>%
+  filter(!is.na(CD4)) %>%
+  filter(!is.na(CD8)) %>%
+  filter(!is.na(MO)) %>%
+  filter(!is.na(HIBP_latest)) %>% 
+  filter(!is.na(DIAB_latest)) %>%
+  filter(!is.na(VIGACT_collapsed)) %>%
+  filter(!is.na(ATOTB_latest)) %>%
+  filter(!is.na(Parent_Educ)) %>% 
+  mutate(included = 1)   #give variable called included a value of 1 if the above variables are not missing
+
+
+# Convert Sample Plate to factor
+complete$Sample_Plate <- as_factor(complete$Sample_Plate)
+class(complete$Sample_Plate)
+
+
+  ## Remove variable order to set reference group
+complete$childrural_democoggen <- factor(complete$childrural_democoggen, ordered = FALSE)
+complete$LIVEGPAR_R <- factor(complete$LIVEGPAR_R, ordered = FALSE)
+complete$CHSMOKE_R <- factor(complete$CHSMOKE_R, ordered = FALSE)
+complete$raceethnicity_collapsed <- factor(complete$raceethnicity_collapsed, ordered = FALSE)
+complete$smoke_latest <- factor(complete$smoke_latest, ordered = FALSE)
+complete$ds_latest <- factor(complete$ds_latest, ordered = FALSE)
+complete$HIBP_latest <- factor(complete$HIBP_latest, ordered = FALSE)
+complete$DIAB_latest <- factor(complete$DIAB_latest, ordered = FALSE)
+complete$VIGACT_collapsed <- factor(complete$VIGACT_collapsed, ordered = FALSE)
+
+
+  ## Set reference group for factor variables 
+  ## childrural_democoggen: most people did not live in rural area 
+complete$childrural_democoggen <- relevel(complete$childrural_democoggen, ref = "No")        
+
+  ## LIVEGPAR_R: most people did not live with a grandparent 
+complete$LIVEGPAR_R <- relevel(complete$LIVEGPAR_R, ref = "No")        
+
+  ## CHSMOKE_R: most people said no
+complete$CHSMOKE_R <- relevel(complete$CHSMOKE_R, ref = "No")        
+
+  ## smoke_latest: most people said never
+complete$smoke_latest <- relevel(complete$smoke_latest, ref = "Never")
+
+  ## ds_latest: most people said never
+complete$ds_latest <- relevel(complete$ds_latest, ref = "Never")        
+
+  ## BEALE_latest: most people said Urban
+complete$BEALE_latest <- relevel(complete$BEALE_latest, ref = "Urban")        
+
+  ## Parent_Educ: most people said High School & Beyond
+complete$Parent_Educ <- relevel(complete$Parent_Educ, ref = "High School & Beyond")        
+
+  ## HIBP_latest: most people said yes (but setting ref to no for consistent interpretation)
+complete$HIBP_latest <- relevel(complete$HIBP_latest, ref = "No")
+
+  ## DIAB_latest: most people said no
+complete$DIAB_latest <- relevel(complete$DIAB_latest, ref = "No")        
+
+  ## VIGACT_collapsed: most people said never (but setting ref to Every day/>1 per week for interpretation)
+complete$VIGACT_collapsed <- relevel(complete$VIGACT_collapsed, ref = "Every day/>1 per week")        
+
+  ## Sex: more people were Female
+complete$sex <- relevel(complete$sex, ref = "Female")        
+
+  ## raceethnicity_collapsed: more were NH_White
+complete$raceethnicity_collapsed <- relevel(complete$raceethnicity_collapsed, ref = "NH-White")     
+
+## Update variable labels
+complete$Sample_Plate = set_label(complete$Sample_Plate, label = ("Plate"))
+complete$HORVATH_DNAMAGE = set_label(complete$HORVATH_DNAMAGE, label = ("Horvath DNAm age"))
+complete$HANNUM_DNAMAGE = set_label(complete$HANNUM_DNAMAGE, label = ("Hannum DNAm age"))
+complete$LEVINE_DNAMAGE = set_label(complete$LEVINE_DNAMAGE, label = ("Levine DNAm age"))
+complete$DNAMGRIMAGE = set_label(complete$DNAMGRIMAGE, label = ("GrimAge DNAm age"))
+complete$MPOA = set_label(complete$MPOA, label = ("MPOA DNAm age"))
+complete$HORVATH_residuals = set_label(complete$HORVATH_residuals, label = ("Horvath DNAm age acceleration"))
+complete$HANNUM_residuals = set_label(complete$HANNUM_residuals, label = ("Hannum DNAm age acceleration"))
+complete$LEVINE_residuals = set_label(complete$LEVINE_residuals, label = ("Levine DNAm age acceleration"))
+complete$GRIM_residuals = set_label(complete$GRIM_residuals, label = ("GrimAge DNAm age acceleration"))
+complete$MPOA_residuals = set_label(complete$MPOA_residuals, label = ("MPOA DNAm age acceleration"))
+complete$childrural_democoggen = set_label(complete$childrural_democoggen, label = ("Grew up in a rural area"))
+complete$SCHLYRS = set_label(complete$SCHLYRS, label = ("Years in school"))
+complete$SCHLYRS_cat = set_label(complete$SCHLYRS_cat, label = ("Years in school"))
+complete$SCHLYRS_rev = set_label(complete$SCHLYRS_rev, label = ("Years in school"))
+complete$LIVEGPAR_R = set_label(complete$LIVEGPAR_R, label = ("Live with a grandparent"))
+complete$CHSMOKE_R = set_label(complete$CHSMOKE_R, label = ("Smoking during childhood"))
+complete$GR = set_label(complete$GR, label = ("Granulocytes"))
+complete$NK = set_label(complete$NK, label = ("Natural killer cells"))
+complete$B = set_label(complete$B, label = ("B-cells"))
+complete$CD4 = set_label(complete$CD4, label = ("CD4+ T-cells"))
+complete$CD8 = set_label(complete$CD8, label = ("CD8+ T-cells"))
+complete$MO = set_label(complete$MO, label = ("Monocytes"))
+complete$globalmethylation = set_label(complete$globalmethylation, label = ("Global methylation"))
+complete$Island_mean = set_label(complete$Island_mean, label = ("Island methylation"))
+complete$OpenSea_mean = set_label(complete$OpenSea_mean, label = ("Open sea methylation"))
+complete$Shelf_mean = set_label(complete$Shelf_mean, label = ("Shelf methylation"))
+complete$Shore_mean = set_label(complete$Shore_mean, label = ("Shore methylation"))
+complete$smoke_latest = set_label(complete$smoke_latest, label = ("Smoking status"))
+complete$ds_latest = set_label(complete$ds_latest, label = ("Drinking status"))
+complete$BEALE_latest = set_label(complete$BEALE_latest, label = ("Urban-rural status"))
+complete$Parent_Educ = set_label(complete$Parent_Educ, label = ("Parent education"))
+complete$ATOTB_latest = set_label(complete$ATOTB_latest, label = ("Total of all (household) assets"))
+complete$HIBP_latest = set_label(complete$HIBP_latest, label = ("Ever had high blood pressure"))
+complete$DIAB_latest = set_label(complete$DIAB_latest, label = ("Ever had diabetes"))
+complete$VIGACT_collapsed = set_label(complete$VIGACT_collapsed, label = ("Vigorous physical activity"))
+complete$age = set_label(complete$age, label = ("Age in 2016"))
+complete$race.ethnicity = set_label(complete$race.ethnicity, label = ("Race/ethnicity"))
+complete$raceethnicity_collapsed = set_label(complete$raceethnicity_collapsed, label = ("Race/ethnicity"))
+complete$sex = set_label(complete$sex, label = ("Sex"))
+
+```
+
+## SUBSET AND CREATE FULL DATASET
+
+```{r}
+
+  ## Create a new df using the complete filtered dataset from above (flagging NA's as excluded)
+full <- complete %>% 
+  select(HHIDPN, included) %>%     #select only the specified columns from complete df above
+  full_join(HRS_DNAm_meta_Cell9, by = "HHIDPN") %>%      #merge original df with the complete df by HHIDPN
+  mutate(included = case_when(included == 1~ "Included",     #convert included column to 2-level cat variable ("Included" ==1 & "Excluded" otherwise)
+                             TRUE ~ "Excluded"))
+table(full$included, useNA = "always")       #check above coding worked
+
+```
+
+## UPDATE VARIABLE LABELS
+
+```{r}
+
+## Update variable labels
+full$Sample_Plate = set_label(full$Sample_Plate, label = ("Plate"))
+full$HORVATH_DNAMAGE = set_label(full$HORVATH_DNAMAGE, label = ("Horvath DNAm age"))
+full$HANNUM_DNAMAGE = set_label(full$HANNUM_DNAMAGE, label = ("Hannum DNAm age"))
+full$LEVINE_DNAMAGE = set_label(full$LEVINE_DNAMAGE, label = ("Levine DNAm age"))
+full$DNAMGRIMAGE = set_label(full$DNAMGRIMAGE, label = ("GrimAge DNAm age"))
+full$MPOA = set_label(full$MPOA, label = ("MPOA DNAm age"))
+full$HORVATH_residuals = set_label(full$HORVATH_residuals, label = ("Horvath DNAm age acceleration"))
+full$HANNUM_residuals = set_label(full$HANNUM_residuals, label = ("Hannum DNAm age acceleration"))
+full$LEVINE_residuals = set_label(full$LEVINE_residuals, label = ("Levine DNAm age acceleration"))
+full$GRIM_residuals = set_label(full$GRIM_residuals, label = ("GrimAge DNAm age acceleration"))
+full$MPOA_residuals = set_label(full$MPOA_residuals, label = ("MPOA DNAm age acceleration"))
+full$childrural_democoggen = set_label(full$childrural_democoggen, label = ("Grew up in a rural area"))
+full$SCHLYRS = set_label(full$SCHLYRS, label = ("Years in school"))
+full$SCHLYRS_cat = set_label(full$SCHLYRS_cat, label = ("Years in school"))
+full$SCHLYRS_rev = set_label(full$SCHLYRS_rev, label = ("Years in school"))
+full$LIVEGPAR_R = set_label(full$LIVEGPAR_R, label = ("Live with a grandparent"))
+full$CHSMOKE_R = set_label(full$CHSMOKE_R, label = ("Smoking during childhood"))
+full$GR = set_label(full$GR, label = ("Granulocytes"))
+full$NK = set_label(full$NK, label = ("Natural killer cells"))
+full$B = set_label(full$B, label = ("B-cells"))
+full$CD4 = set_label(full$CD4, label = ("CD4+ T-cells"))
+full$CD8 = set_label(full$CD8, label = ("CD8+ T-cells"))
+full$MO = set_label(full$MO, label = ("Monocytes"))
+full$globalmethylation = set_label(full$globalmethylation, label = ("Global methylation"))
+full$Island_mean = set_label(full$Island_mean, label = ("Island methylation"))
+full$OpenSea_mean = set_label(full$OpenSea_mean, label = ("Open sea methylation"))
+full$Shelf_mean = set_label(full$Shelf_mean, label = ("Shelf methylation"))
+full$Shore_mean = set_label(full$Shore_mean, label = ("Shore methylation"))
+full$smoke_latest = set_label(full$smoke_latest, label = ("Smoking status"))
+full$ds_latest = set_label(full$ds_latest, label = ("Drinking status"))
+full$BEALE_latest = set_label(full$BEALE_latest, label = ("Urban-rural status"))
+full$Parent_Educ = set_label(full$Parent_Educ, label = ("Parent education"))
+full$ATOTB_latest = set_label(full$ATOTB_latest, label = ("Total of all (household) assets"))
+full$HIBP_latest = set_label(full$HIBP_latest, label = ("Ever had high blood pressure"))
+full$DIAB_latest = set_label(full$DIAB_latest, label = ("Ever had diabetes"))
+full$VIGACT_collapsed = set_label(full$VIGACT_collapsed, label = ("Vigorous physical activity"))
+full$age = set_label(full$age, label = ("Age in 2016"))
+full$race.ethnicity = set_label(full$race.ethnicity, label = ("Race/ethnicity"))
+full$raceethnicity_collapsed = set_label(full$raceethnicity_collapsed, label = ("Race/ethnicity"))
+full$sex = set_label(full$sex, label = ("Sex"))
+
+```
+
+## EXPORT DATASETS
+
+```{r}
+
+saveRDS(complete, file = "NewData/HRS_DNAm_meta_Cell9_Included20261601.RDS")
+
+  ## Subset data frame for variables of interest
+complete_subset <- select(complete, "HHIDPN", "Sample_Plate", "Basename", "HORVATH_DNAMAGE", "HORVATH_residuals", "HORVATHAccel", "HANNUM_DNAMAGE", "HANNUM_residuals", "HANNUMAccel", "LEVINE_DNAMAGE", "LEVINE_residuals", "LEVINEAccel", "DNAMGRIMAGE", "GRIM_residuals", "GRIMAccel", "MPOA", "MPOA_residuals", "MPOAAccel", "childrural_democoggen", "SCHLYRS", "SCHLYRS_cat", "SCHLYRS_rev", "LIVEGPAR_R", "CHSMOKE_R", "GR", "NK", "B", "CD4", "CD8", "MO", "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "globalmethylation_cat", "Island_mean_cat", "OpenSea_mean_cat", "Shelf_mean_cat", "Shore_mean_cat", "smoke_latest", "ds_latest", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "HIBP_latest", "DIAB_latest", "VIGACT_latest", "VIGACT_collapsed", "age", "race.ethnicity", "raceethnicity_collapsed", "sex", "exclude", "flag_for_exclusion", "included")
+
+saveRDS(complete_subset, file = "NewData/HRS_DNAm_meta_Cell9_Includedsubset20261601.RDS")
+
+saveRDS(HRS_DNAm_meta_Cell9, file = "NewData/HRS_DNAm_meta_Cell9_notfiltered20261601.RDS")
+
+saveRDS(full, file = "NewData/full_filtered20261601.RDS")
+
+```
