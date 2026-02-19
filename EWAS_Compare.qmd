@@ -209,10 +209,10 @@ combined_schlyrs2 <- data.frame(
 )
 combined_schlyrs2$gene <- gsub(";.*", "", combined_schlyrs2$gene)
 
-# Get top shared significant site (p< 0.05)
-sig_hitss2 <- combined_schlyrs2 %>%  filter(maternal_educ_ewas.pval < 0.05 & schlyrs_m3.pval < 0.05)
+# Get top shared significant site (p< 0.01)
+sig_hitss2 <- combined_schlyrs2 %>%  filter(maternal_educ_ewas.pval < 0.01 & schlyrs_m3.pval < 0.01)
 
-sheets = list('All Overlap' = combined_schlyrs2, 'P<0.05' = sig_hitss2)
+sheets = list('All Overlap' = combined_schlyrs2, 'P<0.01' = sig_hitss2)
 writexl::write_xlsx(sheets, 'Manuscript/EWAS_Overlap/M3 Years in School Overlap maternal ea.xlsx', format_headers = TRUE)
 
 ```
@@ -234,10 +234,10 @@ combined_chsmk3 <- data.frame(
 )
 combined_chsmk3$gene <- gsub(";.*", "", combined_chsmk3$gene)
 
-# Get top shared significant site (p< 0.05)
-sig_hitsc3 <- combined_chsmk3 %>%  filter(currentsmk_ewas.pval < 0.05 & chsmk_ds.pval < 0.05)
+# Get top shared significant site (p< 0.01)
+sig_hitsc3 <- combined_chsmk3 %>%  filter(currentsmk_ewas.pval < 0.01 & chsmk_ds.pval < 0.01)
 
-sheets = list('All Overlap' = combined_chsmk3, 'P<0.05' = sig_hitsc3)
+sheets = list('All Overlap' = combined_chsmk3, 'P<0.01' = sig_hitsc3)
 writexl::write_xlsx(sheets, 'Manuscript/EWAS_Overlap/M3 Child Smoking Overlap currentsmk.xlsx', format_headers = TRUE)
 
 
@@ -254,10 +254,10 @@ combined_chsmk4 <- data.frame(
 )
 combined_chsmk4$gene <- gsub(";.*", "", combined_chsmk4$gene)
 
-# Get top shared significant site (p< 0.05)
-sig_hitsc4 <- combined_chsmk4 %>%  filter(formersmk_ewas.pval < 0.05 & chsmk_ds.pval < 0.05)
+# Get top shared significant site (p< 0.01)
+sig_hitsc4 <- combined_chsmk4 %>%  filter(formersmk_ewas.pval < 0.01 & chsmk_ds.pval < 0.01)
 
-sheets = list('All Overlap' = combined_chsmk4, 'P<0.05' = sig_hitsc4)
+sheets = list('All Overlap' = combined_chsmk4, 'P<0.01' = sig_hitsc4)
 writexl::write_xlsx(sheets, 'Manuscript/EWAS_Overlap/M3 Child Smoking Overlap formersmk.xlsx', format_headers = TRUE)
 
 ```
