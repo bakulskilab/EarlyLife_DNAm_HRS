@@ -567,6 +567,17 @@ gtsave(top_cpgs_m3_schlyrstbl, "Manuscript/EWAS/top_schlyrstbl_M32026Jan16.docx"
 gtsave(top_cpgs_m3_livegpartbl, "Manuscript/EWAS/top_livegpartbl_M32026Jan16.docx")
 gtsave(top_cpgs_chsmkdstbl, "Manuscript/EWAS/top_chsmktbl_M32026Jan16.docx")
 
+
+#Get nominally significant sites (p<0.0001)
+ruralsig_p0.0001 <- rural_smk_8 %>% filter(P.Value < 1e-4)
+schlsig_p0.0001 <- schlyrs_m3 %>% filter(P.Value < 1e-4)
+livegparsig_p0.0001 <- livegpar_smk_10 %>% filter(P.Value < 1e-4)
+chsmksig_p0.0001 <- chsmk_ds %>% filter(P.Value < 1e-4)
+
+#Save
+sheets_p0.0001 = list('childrural' = ruralsig_p0.0001, 'SCHLYRS' = schlsig_p0.0001, 'LIVEGPAR' = livegparsig_p0.0001, 'CHSMOKE' = chsmksig_p0.0001)
+write_xlsx(sheets_p0.0001, 'Manuscript/EWAS/Significant Sites P<0.0001.xlsx', format_headers = TRUE)
+
 ```
 
 ## EXPORT RESULTS
