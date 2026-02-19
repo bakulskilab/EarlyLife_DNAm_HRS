@@ -123,10 +123,10 @@ forest_plot_GM_ALLM3
 forest_plotcombined <- plot_grid(forest_plot_AA_ALLM3, forest_plot_GM_ALLM3, ncol = 2, align = "h", axis = "l")
 
 ## Export
-save_plot("Manuscript/20261601/2026Feb05_supplfig3_forest_plots_m3_AA.svg", plot = forest_plot_AA_ALLM3, base_width = 18, base_height = 12)
-save_plot("Manuscript/20261601/2026Feb5_supplfig4_forest_plots_m3_GM.svg", plot = forest_plot_GM_ALLM3, base_width = 20, base_height = 12)
+save_plot("Manuscript/20261601/2026Feb19_supplfig3_forest_plots_m3_AA.svg", plot = forest_plot_AA_ALLM3, base_width = 18, base_height = 12)
+save_plot("Manuscript/20261601/2026Feb19_supplfig4_forest_plots_m3_GM.svg", plot = forest_plot_GM_ALLM3, base_width = 20, base_height = 12)
 
-save_plot("Manuscript/20261601/2026Feb05_supplfig3_combinedforest_plots_m3_AAGM.svg", plot = forest_plotcombined, base_width = 35, base_height = 10)
+save_plot("Manuscript/20261601/2026Feb19_supplfig3_combinedforest_plots_m3_AAGM.svg", plot = forest_plotcombined, base_width = 35, base_height = 10)
 
 
 ```

@@ -170,11 +170,11 @@ forest_plotunadjGM <- function(filtered_df) {
 
 forest_plot <- function(filtered_df) {
   outcome_levels <- c("GrimAge", "MPOA", "Levine", "Horvath", "Hannum")
-  blues <- c("GrimAge" = "#191970", "MPOA" = "#0047AB", "Levine" = "#1F51FF", "Horvath" = "#00688B", "Hannum" = "#1874CD")
+  blues <- c("GrimAge" = "#05014a", "MPOA" = "#660094", "Levine" = "#0006b1", "Horvath" = "#9433d1", "Hannum" = "#0021f3")
   ggplot(filtered_df, aes(x = estimate, y = exposure, color = outcome)) +
     geom_point(position = position_dodge(width = 0.9), size = 3) +
     scale_color_manual(values = blues) +
-    geom_vline(xintercept = 0, linetype = "dotted", linewidth = 0.4, color = "gray40") +
+    geom_vline(xintercept = 0, linetype = "dotted", linewidth = 0.5, color = "grey2") +
     geom_errorbarh(aes(xmin = `2.5 %`, xmax = `97.5 %`), height = 0.3, position = position_dodge(width = 0.9)) +
     geom_text(aes(label = sprintf("%0.2f [%0.2f, %0.2f]%s", 
                                   round(estimate, 2), 
@@ -190,11 +190,11 @@ forest_plot <- function(filtered_df) {
 
 forest_plotGM <- function(filtered_df) {
   outcome_levels <- c("Global methylation", "Island methylation", "Shelf methylation", "Shore methylation", "Open Sea methylation")
-  reds <- c("Global methylation" = "#870411", "Island methylation" = "#b01020", "Shelf methylation" = "#e81e32", "Shore methylation" = "#f05663", "Open Sea methylation" = "#ff6975")
+  reds <- c("Global methylation" = "#960000", "Island methylation" = "#853e0f", "Shelf methylation" = "#c70000", "Shore methylation" = "#bc6a2c", "Open Sea methylation" = "#f72828")
   ggplot(filtered_df, aes(x = estimate, y = exposure, color = outcome)) +
     geom_point(position = position_dodge(width = 0.9), size = 3) +
     scale_color_manual(values = reds) +
-    geom_vline(xintercept = 0, linetype = "dotted", linewidth = 0.4, color = "gray40") +
+    geom_vline(xintercept = 0, linetype = "dotted", linewidth = 0.5, color = "grey2") +
     geom_errorbarh(aes(xmin = `2.5 %`, xmax = `97.5 %`), height = 0.3, position = position_dodge(width = 0.9)) +
     geom_text(aes(label = sprintf("%0.2f [%0.2f, %0.2f]%s", 
                                   round(estimate, 2), 
