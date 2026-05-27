@@ -46,7 +46,7 @@ globalM_OCT24 <- select(globalM_OCT24, 'Basename', 'globalmethylation', 'Island_
 load("Datasets/hrs_combine_wide.RData")
 load("Datasets/randhrs1992_2018v1.rda")
 ## Select columns of interest
-hrs_combine_wide <- select(hrs_combine_wide, 'HHIDPN', 'gender', 'race', 'hispanic', 'education', 'smoke2008', 'smoke2010', 'smoke2012', 'smoke2014', 'smoke2016', 'drink_status2008', 'drink_status2010', 'drink_status2012', 'drink_status2014', 'drink_status2016', 'drink_quant2008', 'drink_quant2010', 'drink_quant2012', 'drink_quant2014', 'drink_quant2016', 'heavey_drink2008', 'heavey_drink2010', 'heavey_drink2012', 'heavey_drink2014', 'heavey_drink2016')
+hrs_combine_wide <- select(hrs_combine_wide, 'HHIDPN', 'gender', 'race', 'hispanic', 'education', 'smoke2008', 'smoke2010', 'smoke2012', 'smoke2014', 'smoke2016')
 rand92_2018V1 = randhrs1992_2018v1
 rm(randhrs1992_2018v1)
 rand92_2018V1 <- select(rand92_2018V1, 'HHID', 'PN', 'R13HIBPE', 'R12HIBPE', 'R11HIBPE', 'R10HIBPE', 'R9HIBPE', 'R13DIABE', 'R12DIABE', 'R11DIABE', 'R10DIABE', 'R9DIABE', 'H9ATOTB', 'H10ATOTB', 'H11ATOTB', 'H12ATOTB', 'H13ATOTB', 'R13MDACTX', 'R12MDACTX', 'R11MDACTX', 'R10MDACTX', 'R9MDACTX', 'R13LTACTX', 'R12LTACTX', 'R11LTACTX', 'R10LTACTX', 'R9LTACTX', 'R13VGACTX', 'R12VGACTX', 'R11VGACTX', 'R10VGACTX', 'R9VGACTX')
@@ -129,7 +129,7 @@ dim(Oct24_metaGM)
 HRS_DNAm_meta_Cell2 <- left_join(Oct24_metaGM, hrs_combine_wide, by = "HHIDPN")
 dim(HRS_DNAm_meta_Cell2)
   ## Check merge
-dfSummary(HRS_DNAm_meta_Cell2$heavey_drink2016)
+dfSummary(HRS_DNAm_meta_Cell2$smoke2008)
 
 
 ## Merge above with hrs_democoggen_wide 
@@ -137,7 +137,7 @@ HRS_DNAm_meta_Cell4 <- left_join(HRS_DNAm_meta_Cell2, hrs_democoggen_wide, by = 
 dim(HRS_DNAm_meta_Cell4)
   ## Check merge
 dfSummary(HRS_DNAm_meta_Cell4$BEALE2013_10)
-dfSummary(HRS_DNAm_meta_Cell4$heavey_drink2016)
+dfSummary(HRS_DNAm_meta_Cell4$smoke2008)
 dfSummary(HRS_DNAm_meta_Cell4$race)
 dfSummary(HRS_DNAm_meta_Cell4$Parent_Education)
 
@@ -169,19 +169,19 @@ dim(HRS_DNAm_meta_Cell9)
 
 ```{r}
 
-saveRDS(Oct24_meta, file = "NewData/HRS_DNAm_meta_nk20261601.RDS")
+saveRDS(Oct24_meta, file = "NewData/HRS_DNAm_meta_nk20261703.RDS")
 
-saveRDS(hrs_combine_wide, file = "NewData/hrs_combine_wide_nk20261601.RDS")
+saveRDS(hrs_combine_wide, file = "NewData/hrs_combine_wide_nk20261703.RDS")
 
-saveRDS(hrs_democoggen_wide, file = "NewData/hrs_democoggen_wide_nk20261601.RDS")
+saveRDS(hrs_democoggen_wide, file = "NewData/hrs_democoggen_wide_nk20261703.RDS")
 
-saveRDS(globalM_OCT24, file = "NewData/global_methylation_nk20261601.RDS")
+saveRDS(globalM_OCT24, file = "NewData/global_methylation_nk20261703.RDS")
 
-saveRDS(chf, file = "NewData/chf_nk20261601.RDS")
+saveRDS(chf, file = "NewData/chf_nk20261703.RDS")
 
-saveRDS(full.labelled, file = "NewData/full.labelled_nk20261601.RDS")
+saveRDS(full.labelled, file = "NewData/full.labelled_nk20261703.RDS")
 
-saveRDS(rand92_2018V1, file = "NewData/rand92_2018V1_nk20261601.RDS")
+saveRDS(rand92_2018V1, file = "NewData/rand92_2018V1_nk20261703.RDS")
 
 rm(chf, full.labelled, hrs_democoggen_wide, rand92_2018V1, globalM_OCT24, hrs_combine_wide, Oct24_meta, Oct24_metaGM, HRS_DNAm_meta_Cell2, HRS_DNAm_meta_Cell4, HRS_DNAm_meta_Cell7, HRS_DNAm_meta_Cell8)
 
@@ -225,15 +225,6 @@ dfSummary(HRS_DNAm_meta_Cell9$LIVEGPAR_R)
 
 ## Recode/Factor: Covariates
 ## Life course behavior and socioeconomic variables: Uses responses from 2016 and if missing takes the next valid response 
-  ## Drink Status
-HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% 
-  mutate(ds_latest = coalesce(drink_status2016, drink_status2014, drink_status2012, drink_status2010, drink_status2008)
-)
-dfSummary(HRS_DNAm_meta_Cell9$ds_latest)
-HRS_DNAm_meta_Cell9$ds_latest <- factor(HRS_DNAm_meta_Cell9$ds_latest, levels = c(0, 1, 2), labels = c("Never", "Former", "Current"))
-table(HRS_DNAm_meta_Cell9$ds_latest)
-
-
   ## Smoking Status
 HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% 
   mutate(smoke_latest = coalesce(smoke2016, smoke2014, smoke2012, smoke2010, smoke2008)
@@ -387,7 +378,6 @@ complete_7smk <- HRS_DNAm_meta_Cell9 %>%
   filter(!is.na(SCHLYRS)) %>% 
   filter(!is.na(CHSMOKE_R)) %>% 
   filter(!is.na(LIVEGPAR_R)) %>%
-  filter(!is.na(ds_latest)) %>% 
   filter(!is.na(smoke_latest)) %>%  
   filter(!is.na(BEALE_latest)) %>% 
   filter(!is.na(HORVATH_DNAMAGE)) %>% 
@@ -426,7 +416,6 @@ dfSummary(HRS_DNAm_meta_Cell9$flag_for_exclusion)
 
 ## Setting reference levels for categorical variables 
 HRS_DNAm_meta_Cell9$smoke_latest <- ordered(HRS_DNAm_meta_Cell9$smoke_latest, levels = c("Current", "Former", "Never"))
-HRS_DNAm_meta_Cell9$ds_latest <- ordered(HRS_DNAm_meta_Cell9$ds_latest, levels = c("Current", "Former", "Never"))
 HRS_DNAm_meta_Cell9$HIBP_latest <- ordered(HRS_DNAm_meta_Cell9$HIBP_latest, levels = c("Yes", "No"))
 HRS_DNAm_meta_Cell9$DIAB_latest <- ordered(HRS_DNAm_meta_Cell9$DIAB_latest, levels = c("Yes", "No"))
 HRS_DNAm_meta_Cell9$VIGACT_collapsed <- ordered(HRS_DNAm_meta_Cell9$VIGACT_collapsed, levels = c("Every day/>1 per week", "1 per week/1-3 per month", "Never"))
@@ -512,7 +501,6 @@ complete <- HRS_DNAm_meta_Cell9 %>%
   filter(!is.na(SCHLYRS_cat)) %>%
   filter(!is.na(CHSMOKE_R)) %>% 
   filter(!is.na(LIVEGPAR_R)) %>%
-  filter(!is.na(ds_latest)) %>% 
   filter(!is.na(smoke_latest)) %>%  
   filter(!is.na(BEALE_latest)) %>% 
   filter(!is.na(HORVATH_DNAMAGE)) %>% 
@@ -545,7 +533,6 @@ complete$LIVEGPAR_R <- factor(complete$LIVEGPAR_R, ordered = FALSE)
 complete$CHSMOKE_R <- factor(complete$CHSMOKE_R, ordered = FALSE)
 complete$raceethnicity_collapsed <- factor(complete$raceethnicity_collapsed, ordered = FALSE)
 complete$smoke_latest <- factor(complete$smoke_latest, ordered = FALSE)
-complete$ds_latest <- factor(complete$ds_latest, ordered = FALSE)
 complete$HIBP_latest <- factor(complete$HIBP_latest, ordered = FALSE)
 complete$DIAB_latest <- factor(complete$DIAB_latest, ordered = FALSE)
 complete$VIGACT_collapsed <- factor(complete$VIGACT_collapsed, ordered = FALSE)
@@ -563,9 +550,6 @@ complete$CHSMOKE_R <- relevel(complete$CHSMOKE_R, ref = "No")
 
   ## smoke_latest: most people said never
 complete$smoke_latest <- relevel(complete$smoke_latest, ref = "Never")
-
-  ## ds_latest: most people said never
-complete$ds_latest <- relevel(complete$ds_latest, ref = "Never")        
 
   ## BEALE_latest: most people said Urban
 complete$BEALE_latest <- relevel(complete$BEALE_latest, ref = "Urban")        
@@ -618,7 +602,6 @@ complete$OpenSea_mean = set_label(complete$OpenSea_mean, label = ("Open sea meth
 complete$Shelf_mean = set_label(complete$Shelf_mean, label = ("Shelf methylation"))
 complete$Shore_mean = set_label(complete$Shore_mean, label = ("Shore methylation"))
 complete$smoke_latest = set_label(complete$smoke_latest, label = ("Smoking status"))
-complete$ds_latest = set_label(complete$ds_latest, label = ("Drinking status"))
 complete$BEALE_latest = set_label(complete$BEALE_latest, label = ("Urban-rural status"))
 complete$Parent_Educ = set_label(complete$Parent_Educ, label = ("Parent education"))
 complete$ATOTB_latest = set_label(complete$ATOTB_latest, label = ("Total of all (household) assets"))
@@ -680,7 +663,6 @@ full$OpenSea_mean = set_label(full$OpenSea_mean, label = ("Open sea methylation"
 full$Shelf_mean = set_label(full$Shelf_mean, label = ("Shelf methylation"))
 full$Shore_mean = set_label(full$Shore_mean, label = ("Shore methylation"))
 full$smoke_latest = set_label(full$smoke_latest, label = ("Smoking status"))
-full$ds_latest = set_label(full$ds_latest, label = ("Drinking status"))
 full$BEALE_latest = set_label(full$BEALE_latest, label = ("Urban-rural status"))
 full$Parent_Educ = set_label(full$Parent_Educ, label = ("Parent education"))
 full$ATOTB_latest = set_label(full$ATOTB_latest, label = ("Total of all (household) assets"))
@@ -698,15 +680,15 @@ full$sex = set_label(full$sex, label = ("Sex"))
 
 ```{r}
 
-saveRDS(complete, file = "NewData/HRS_DNAm_meta_Cell9_Included20261601.RDS")
+saveRDS(complete, file = "NewData/HRS_DNAm_meta_Cell9_Included20261703.RDS")
 
   ## Subset data frame for variables of interest
-complete_subset <- select(complete, "HHIDPN", "Sample_Plate", "Basename", "HORVATH_DNAMAGE", "HORVATH_residuals", "HORVATHAccel", "HANNUM_DNAMAGE", "HANNUM_residuals", "HANNUMAccel", "LEVINE_DNAMAGE", "LEVINE_residuals", "LEVINEAccel", "DNAMGRIMAGE", "GRIM_residuals", "GRIMAccel", "MPOA", "MPOA_residuals", "MPOAAccel", "childrural_democoggen", "SCHLYRS", "SCHLYRS_cat", "SCHLYRS_rev", "LIVEGPAR_R", "CHSMOKE_R", "GR", "NK", "B", "CD4", "CD8", "MO", "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "globalmethylation_cat", "Island_mean_cat", "OpenSea_mean_cat", "Shelf_mean_cat", "Shore_mean_cat", "smoke_latest", "ds_latest", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "HIBP_latest", "DIAB_latest", "VIGACT_latest", "VIGACT_collapsed", "age", "race.ethnicity", "raceethnicity_collapsed", "sex", "exclude", "flag_for_exclusion", "included")
+complete_subset <- select(complete, "HHIDPN", "Sample_Plate", "Basename", "HORVATH_DNAMAGE", "HORVATH_residuals", "HORVATHAccel", "HANNUM_DNAMAGE", "HANNUM_residuals", "HANNUMAccel", "LEVINE_DNAMAGE", "LEVINE_residuals", "LEVINEAccel", "DNAMGRIMAGE", "GRIM_residuals", "GRIMAccel", "MPOA", "MPOA_residuals", "MPOAAccel", "childrural_democoggen", "SCHLYRS", "SCHLYRS_cat", "SCHLYRS_rev", "LIVEGPAR_R", "CHSMOKE_R", "GR", "NK", "B", "CD4", "CD8", "MO", "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "globalmethylation_cat", "Island_mean_cat", "OpenSea_mean_cat", "Shelf_mean_cat", "Shore_mean_cat", "smoke_latest", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "HIBP_latest", "DIAB_latest", "VIGACT_latest", "VIGACT_collapsed", "age", "race.ethnicity", "raceethnicity_collapsed", "sex", "exclude", "flag_for_exclusion", "included")
 
-saveRDS(complete_subset, file = "NewData/HRS_DNAm_meta_Cell9_Includedsubset20261601.RDS")
+saveRDS(complete_subset, file = "NewData/HRS_DNAm_meta_Cell9_Includedsubset20261703.RDS")
 
-saveRDS(HRS_DNAm_meta_Cell9, file = "NewData/HRS_DNAm_meta_Cell9_notfiltered20261601.RDS")
+saveRDS(HRS_DNAm_meta_Cell9, file = "NewData/HRS_DNAm_meta_Cell9_notfiltered20261703.RDS")
 
-saveRDS(full, file = "NewData/full_filtered20261601.RDS")
+saveRDS(full, file = "NewData/full_filtered20261703.RDS")
 
 ```

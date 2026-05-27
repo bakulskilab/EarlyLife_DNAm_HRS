@@ -36,12 +36,12 @@ library(cowplot)
 ```{r, results='hide', message=FALSE}
 
 ## Load complete analytic dataset (HRS_DNAm_meta_Cell9_Includedsubset) from 01_DataManage_Exclusion.qmd file
-complete_subset <- readRDS("NewData/HRS_DNAm_meta_Cell9_Includedsubset20261601.RDS")
+complete_subset <- readRDS("NewData/HRS_DNAm_meta_Cell9_Includedsubset20261703.RDS")
 dim(complete_subset)
 
 
 ## Load full data set from 01_Exclusion.qmd file
-full_ele <- readRDS("NewData/full_filtered20261601.RDS")
+full_ele <- readRDS("NewData/full_filtered20261703.RDS")
 dim(full_ele)
 
 ```
@@ -61,7 +61,7 @@ bivar_chsmk <- complete_subset %>%
                      all_continuous2() ~ "{median} ({p25}, {p75})",
                      all_categorical() ~ "{n} ({p}%)"),
               digits = list(all_continuous() ~ 1),
-              include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest", "ds_latest"),
+              include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest"),
               type = list(age ~ 'continuous', 
                           GR ~ 'continuous',
                           NK ~ 'continuous',
@@ -87,7 +87,6 @@ bivar_chsmk <- complete_subset %>%
                           LIVEGPAR_R ~ 'categorical',
                           BEALE_latest ~ 'categorical',
                           smoke_latest ~ 'categorical',
-                          ds_latest ~ 'categorical',
                           HIBP_latest ~ 'categorical',
                           DIAB_latest ~ 'categorical',
                           VIGACT_collapsed ~ 'categorical',
@@ -125,13 +124,13 @@ bivar_chsmk <- bivar_chsmk %>%
     "GR", "NK", "B", "CD4",
     "CD8", "MO", "SCHLYRS", "childrural_democoggen",
     "CHSMOKE_R", "LIVEGPAR_R", 
-    "age", "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "age", "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "ATOTB_latest", "Parent_Educ"), indent = 5) %>%
   ## Double indent specific rows
   modify_column_indent(columns = "label", rows = variable %in% c(
     "childrural_democoggen", "CHSMOKE_R", "LIVEGPAR_R",
-    "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "Parent_Educ") & row_type == "level", indent = 6) 
 
@@ -145,7 +144,7 @@ bivar_childrural <- complete_subset %>%
                                all_continuous2() ~ "{median} ({p25}, {p75})", 
                                all_categorical() ~ "{n} ({p}%)"),
                             digits = list(all_continuous() ~ 1),
-               include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest", "ds_latest"),
+               include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest"),
               type = list(age ~ 'continuous', 
                           GR ~ 'continuous',
                           NK ~ 'continuous',
@@ -171,7 +170,6 @@ bivar_childrural <- complete_subset %>%
                           LIVEGPAR_R ~ 'categorical',
                           BEALE_latest ~ 'categorical',
                           smoke_latest ~ 'categorical',
-                          ds_latest ~ 'categorical',
                           HIBP_latest ~ 'categorical',
                           DIAB_latest ~ 'categorical',
                           VIGACT_collapsed ~ 'categorical',
@@ -209,13 +207,13 @@ bivar_childrural <- bivar_childrural %>%
     "GR", "NK", "B", "CD4",
     "CD8", "MO", "SCHLYRS", "childrural_democoggen",
     "CHSMOKE_R", "LIVEGPAR_R",
-    "age", "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "age", "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "ATOTB_latest", "Parent_Educ"), indent = 5) %>%
   ## Double indent specific rows
   modify_column_indent(columns = "label", rows = variable %in% c(
     "childrural_democoggen", "CHSMOKE_R", "LIVEGPAR_R",
-     "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+     "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "Parent_Educ") & row_type == "level", indent = 6) 
 
@@ -228,7 +226,7 @@ bivar_livegpar <- complete_subset %>%
                                all_continuous2() ~ "{median} ({p25}, {p75})", 
                                all_categorical() ~ "{n} ({p}%)"),
                             digits = list(all_continuous() ~ 1),
-               include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest", "ds_latest"),
+               include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest"),
               type = list(age ~ 'continuous', 
                           GR ~ 'continuous',
                           NK ~ 'continuous',
@@ -254,7 +252,6 @@ bivar_livegpar <- complete_subset %>%
                           #LIVEGPAR_R ~ 'categorical',
                           BEALE_latest ~ 'categorical',
                           smoke_latest ~ 'categorical',
-                          ds_latest ~ 'categorical',
                           HIBP_latest ~ 'categorical',
                           DIAB_latest ~ 'categorical',
                           VIGACT_collapsed ~ 'categorical',
@@ -292,13 +289,13 @@ bivar_livegpar <- bivar_livegpar %>%
     "GR", "NK", "B", "CD4",
     "CD8", "MO", "SCHLYRS", "childrural_democoggen",
     "CHSMOKE_R", "LIVEGPAR_R",
-    "age", "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "age", "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "ATOTB_latest", "Parent_Educ"), indent = 5) %>%
   ## Double indent specific rows
   modify_column_indent(columns = "label", rows = variable %in% c(
     "childrural_democoggen", "CHSMOKE_R", "LIVEGPAR_R",
-    "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "Parent_Educ") & row_type == "level", indent = 6) 
 
@@ -311,7 +308,7 @@ bivar_schlyrs <- complete_subset %>%
                                all_continuous2() ~ "{median} ({p25}, {p75})", 
                                all_categorical() ~ "{n} ({p}%)"),
                             digits = list(all_continuous() ~ 1),
-             include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS_cat", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest", "ds_latest"),
+             include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS_cat", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest"),
               type = list(age ~ 'continuous', 
                           GR ~ 'continuous',
                           NK ~ 'continuous',
@@ -336,7 +333,6 @@ bivar_schlyrs <- complete_subset %>%
                           LIVEGPAR_R ~ 'categorical',
                           BEALE_latest ~ 'categorical',
                           smoke_latest ~ 'categorical',
-                          ds_latest ~ 'categorical',
                           HIBP_latest ~ 'categorical',
                           DIAB_latest ~ 'categorical',
                           VIGACT_collapsed ~ 'categorical',
@@ -374,13 +370,13 @@ bivar_schlyrs <- bivar_schlyrs %>%
     "GR", "NK", "B", "CD4",
     "CD8", "MO", "SCHLYRS_cat", "childrural_democoggen",
     "CHSMOKE_R", "LIVEGPAR_R",
-    "age", "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "age", "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "ATOTB_latest", "Parent_Educ"), indent = 5) %>%
   ## Double indent specific rows
   modify_column_indent(columns = "label", rows = variable %in% c(
     "childrural_democoggen", "CHSMOKE_R", "LIVEGPAR_R",
-    "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "Parent_Educ") & row_type == "level", indent = 6) 
 
@@ -393,7 +389,7 @@ bivar_grim <- complete_subset %>%
                                all_continuous2() ~ "{median} ({p25}, {p75})", 
                                all_categorical() ~ "{n} ({p}%)"),
                             digits = list(all_continuous() ~ 1),
-             include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest", "ds_latest"),
+             include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest"),
               type = list(age ~ 'continuous', 
                           GR ~ 'continuous',
                           NK ~ 'continuous',
@@ -419,7 +415,6 @@ bivar_grim <- complete_subset %>%
                           LIVEGPAR_R ~ 'categorical',
                           BEALE_latest ~ 'categorical',
                           smoke_latest ~ 'categorical',
-                          ds_latest ~ 'categorical',
                           HIBP_latest ~ 'categorical',
                           DIAB_latest ~ 'categorical',
                           VIGACT_collapsed ~ 'categorical',
@@ -457,13 +452,13 @@ bivar_grim <- bivar_grim %>%
     "GR", "NK", "B", "CD4",
     "CD8", "MO", "SCHLYRS", "childrural_democoggen",
     "CHSMOKE_R", "LIVEGPAR_R",
-    "age", "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "age", "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "ATOTB_latest", "Parent_Educ"), indent = 5) %>%
   # Double indent specific rows
   modify_column_indent(columns = "label", rows = variable %in% c(
     "childrural_democoggen", "CHSMOKE_R", "LIVEGPAR_R",
-    "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "Parent_Educ") & row_type == "level", indent = 6) 
 
@@ -482,7 +477,7 @@ ELE_GRIM_bivar_merge %>%
   flextable::font(fontname = "Arial", part = "all") %>% 
   flextable::fontsize(size = 5, part = "all") %>% 
   flextable::width(j = NULL, width = 1.5) %>%
-  flextable::save_as_docx(path ="Manuscript/20261601/KANNEY_Aim1_bivartblMERGE_202603Feb.docx")
+  flextable::save_as_docx(path ="Manuscript/KANNEY_Aim1_bivartblMERGE_202617Mar.docx")
 
 ```
 
@@ -524,7 +519,6 @@ data_flow2 <- full_ele %>% #original dataset from which everything is excluded
   ## Set criteria for excluding Health, socioeconomic, and behavior Variables
   dplyr::mutate(ex4 = case_when( 
     is.na(BEALE_latest) ~ "Urban-Rural Status",
-    is.na(ds_latest) ~ "Drinking Status",
     is.na(smoke_latest) ~ "Smoking Status",
     is.na(HIBP_latest) ~ "Ever had High Blood Pressure",
     is.na(DIAB_latest) ~ "Ever had Diabetes",
@@ -631,7 +625,7 @@ raincloud_plot
 
 
 # Export
-save_plot("Manuscript/20261601/raincloud_plot_202603Feb.png", raincloud_plot, base_width = 20, base_height = 12, dpi = 900, bg = "white")
+save_plot("Manuscript/raincloud_plot_202617Mar.png", raincloud_plot, base_width = 20, base_height = 12, dpi = 900, bg = "white")
 
 ```
 
@@ -663,7 +657,7 @@ resid_plotGRIM <- plot_grid(grim_scatter1, grim_scatter2, labels = c('A', 'B'), 
 resid_plotGRIM
 
 #Export
-save_plot("Manuscript/20261601/resid_plotGRIM_202603Feb.png", resid_plotGRIM, base_width = 18, base_height = 8, dpi = 900, bg = "white")
+save_plot("Manuscript/resid_plotGRIM_202617Mar.png", resid_plotGRIM, base_width = 18, base_height = 8, dpi = 900, bg = "white")
 
 ```
 
@@ -683,7 +677,7 @@ include_exclude_table <- full_ele %>%
                                all_continuous2() ~ "{median} ({p25}, {p75})", 
                                all_categorical() ~ "{n} ({p}%)"),
                             digits = list(all_continuous() ~ 1),
-              include = c("GRIM_residuals", "MPOA_residuals", "LEVINE_residuals", "HORVATH_residuals", "HANNUM_residuals", "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R",  "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest", "ds_latest"),
+              include = c("GRIM_residuals", "MPOA_residuals", "LEVINE_residuals", "HORVATH_residuals", "HANNUM_residuals", "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R",  "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest"),
               type = list(age ~ 'continuous', 
                           GR ~ 'continuous',
                           NK ~ 'continuous',
@@ -709,7 +703,6 @@ include_exclude_table <- full_ele %>%
                           LIVEGPAR_R ~ 'categorical',
                           BEALE_latest ~ 'categorical',
                           smoke_latest ~ 'categorical',
-                          ds_latest ~ 'categorical',
                           HIBP_latest ~ 'categorical',
                           DIAB_latest ~ 'categorical',
                           VIGACT_collapsed ~ 'categorical',
@@ -717,7 +710,7 @@ include_exclude_table <- full_ele %>%
                           ATOTB_latest ~ 'continuous2'), 
               label = as.list(variable_labels),
               missing_text = "Missing" 
-  ) %>% add_overall() %>% add_p
+  ) %>% add_overall() %>% add_p(test = list(all_categorical() ~ "fisher.test"))
   ## Insert headers at the correct positions manually
 include_exclude_table <- include_exclude_table %>%
   modify_table_body(
@@ -747,13 +740,13 @@ include_exclude_table <- include_exclude_table %>%
     "GR", "NK", "B", "CD4",
     "CD8", "MO", "SCHLYRS", "childrural_democoggen",
     "CHSMOKE_R", "LIVEGPAR_R", 
-    "age", "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "age", "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "ATOTB_latest", "Parent_Educ"), indent = 5) %>%
   ## Double indent specific rows
   modify_column_indent(columns = "label", rows = variable %in% c(
     "childrural_democoggen", "CHSMOKE_R", "LIVEGPAR_R",
-    "sex", "race.ethnicity", "ds_latest", "smoke_latest",
+    "sex", "race.ethnicity", "smoke_latest",
     "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
     "Parent_Educ") & row_type == "level", indent = 6) 
 
@@ -766,7 +759,7 @@ include_exclude_table %>%
   flextable::font(fontname = "Arial", part = "all") %>% 
   flextable::fontsize(size = 11, part = "all") %>% 
   flextable::width(j = NULL, width = 1.5) %>%
-  flextable::save_as_docx(path ="Manuscript/20261601/KANNEY_Aim1_inclexcl_tableAddP_202603Feb.docx")
+  flextable::save_as_docx(path ="Manuscript/KANNEY_Aim1_inclexcl_tableAddP_202623Mar_fishersONLY.docx")
 
 ```
 
@@ -790,7 +783,8 @@ corplot
 
 
 #Export
-save_plot("Manuscript/20261601/corr_plot_202603Feb.png", corplot, base_width = 15, base_height = 6, dpi = 1200, bg = "white")
-save_plot("Manuscript/20261601/corr_plot_nolegend_202603Feb.png", corplot2, base_width = 15, base_height = 6, dpi = 1200, bg = "white")
+save_plot("Manuscript/corr_plot_202617Mar.png", corplot, base_width = 15, base_height = 6, dpi = 1200, bg = "white")
+save_plot("Manuscript/corr_plot_nolegend_202617Mar.png", corplot2, base_width = 15, base_height = 6, dpi = 1200, bg = "white")
 
 ```
+

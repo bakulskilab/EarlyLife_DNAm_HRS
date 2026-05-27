@@ -33,58 +33,70 @@ library(methylGSA)
 
 ```{r}
 
-# M1/Health Only
-load("Output/EWAS/resultsm1_childrural_hm.rda")
+#M1: Core
+load("NewData/EWAS/resultsm1_childrural_core.rda")
+core_rural <- results_rural_cannotated
+rm(results_rural_cannotated)
+core_rural <- core_rural %>% mutate(logFCpercent = logFC * 100)
+
+load("NewData/EWAS/resultsm1_schlyrs_core.rda")
+core_schlyrs <- results_schlyrs_cannotated
+rm(results_schlyrs_cannotated)
+core_schlyrs <- core_schlyrs %>% mutate(logFCpercent = logFC * 100)
+
+load("NewData/EWAS/resultsm1_livegpar_core.rda")
+core_livegpar <- results_livegpar_cannotated
+rm(results_livegpar_cannotated)
+core_livegpar <- core_livegpar %>% mutate(logFCpercent = logFC * 100)
+
+load("NewData/EWAS/resultsm1_chsmk_core.rda")
+core_chsmk <- results_chsmk_cannotated
+rm(results_chsmk_cannotated)
+core_chsmk <- core_chsmk %>% mutate(logFCpercent = logFC * 100)
+
+#M2: Health Only
+load("NewData/EWAS/resultsm1_childrural_hm.rda")
 h_rural <- results_rural_hannotated
 rm(results_rural_hannotated)
+h_rural <- h_rural %>% mutate(logFCpercent = logFC * 100)
 
-load("Output/EWAS/resultsm1_schlyrs_h.rda")
+load("NewData/EWAS/resultsm1_schlyrs_h.rda")
 h_schlyrs <- results_schlyrs_hannotated
 rm(results_schlyrs_hannotated)
+h_schlyrs <- h_schlyrs %>% mutate(logFCpercent = logFC * 100)
 
-load("Output/EWAS/resultsm1_livegpar_h.rda")
+load("NewData/EWAS/resultsm1_livegpar_h.rda")
 h_livegpar <- results_livegpar_hannotated
 rm(results_livegpar_hannotated)
+h_livegpar <- h_livegpar %>% mutate(logFCpercent = logFC * 100)
 
-load("Output/EWAS/resultsm1_chsmk_h.rda")
+load("NewData/EWAS/resultsm1_chsmk_h.rda")
 h_chsmk <- results_chsmk_hannotated
 rm(results_chsmk_hannotated)
+h_chsmk <- h_chsmk %>% mutate(logFCpercent = logFC * 100)
 
-
-# M2/Health, socioeconomic, and behavior Variables
-load("Output/EWAS/resultsm2_childrural_h2.rda")
-sh_rural <- results_rural_hannotated2
-rm(results_rural_hannotated2)
-
-load("Output/EWAS/resultsm2_schlyrs_h2.rda")
-sh_schlyrs <- results_schlyrs_hannotated2
-rm(results_schlyrs_hannotated2)
-
-load("Output/EWAS/resultsm2_livegpar_h2.rda")
-sh_livegpar <- results_livegpar_hannotated2
-rm(results_livegpar_hannotated2)
-
-load("Output/EWAS/resultsm2_chsmk_h2.rda")
-sh_chsmk <- results_chsmk_hannotated2
-rm(results_chsmk_hannotated2)
-
-
-# M3/Primary
-load("Output/EWAS/resultsm3_rural_ds8.rda")
+#M3: Health, socioeconomic, and behavior Variables
+load("NewData/EWAS/resultsm3_rural_ds8.rda")
 rural_smk_8 <- results_rural_ds8annotated
 rm(results_rural_ds8annotated)
+rural_m3 <- rural_smk_8 %>% mutate(logFCpercent = logFC * 100)
 
-load("Output/EWAS/resultsm3_livegpar_ds10.rda")
-livegpar_smk_10 <- results_livegpar_ds10annotated
-rm(results_livegpar_ds10annotated)
-
-load("Output/EWAS/resultsm3_schlyrs_ds9.rda")
+load("NewData/EWAS/resultsm3_schlyrs_ds9.rda")
 schlyrs_m3 <- results_schlyrs_ds9annotated
 rm(results_schlyrs_ds9annotated)
+schlyrs_m3 <- schlyrs_m3 %>% mutate(logFCpercent = logFC * 100)
 
-load("Output/EWAS/resultsm3_chsmk_ds.rda")
+load("NewData/EWAS/resultsm3_livegpar_ds10.rda")
+livegpar_smk_10 <- results_livegpar_ds10annotated
+rm(results_livegpar_ds10annotated)
+livegpar_m3 <- livegpar_smk_10 %>% mutate(logFCpercent = logFC * 100)
+
+load("NewData/EWAS/resultsm3_chsmk_ds.rda")
 chsmk_ds <- results_chsmk_dsannotated
 rm(results_chsmk_dsannotated)
+chsmk_m3 <- chsmk_ds %>% mutate(logFCpercent = logFC * 100)
+
+rm(rural_smk_8, livegpar_smk_10, chsmk_ds)
 
 ```
 
@@ -98,30 +110,30 @@ source('EWAS_function.R')
 
 # GENE SET ENRICHMENT
 
-### M1/Health Only
+### M1/Core
 
 ```{r}
 
-cpg_pvalues <- h_rural$P.Value
-names(cpg_pvalues) <- h_rural$CpG
+cpg_pvalues <- core_rural$P.Value
+names(cpg_pvalues) <- core_rural$CpG
 gsa_result1 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- h_schlyrs$P.Value
-names(cpg_pvalues) <- h_schlyrs$CpG
+cpg_pvalues <- core_schlyrs$P.Value
+names(cpg_pvalues) <- core_schlyrs$CpG
 gsa_result2 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- h_livegpar$P.Value
-names(cpg_pvalues) <- h_livegpar$CpG
+cpg_pvalues <- core_livegpar$P.Value
+names(cpg_pvalues) <- core_livegpar$CpG
 gsa_result3 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- h_chsmk$P.Value
-names(cpg_pvalues) <- h_chsmk$CpG
+cpg_pvalues <- core_chsmk$P.Value
+names(cpg_pvalues) <- core_chsmk$CpG
 gsa_result4 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
@@ -129,28 +141,28 @@ gsa_result4 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
 
 ```
 
-### M2/Health, socioeconomic, and behavior Variables
+### M2/Health Only
 
 ```{r}
-cpg_pvalues <- sh_rural$P.Value
+cpg_pvalues <- h_rural$P.Value
 names(cpg_pvalues) <- h_rural$CpG
 gsa_result5 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- sh_schlyrs$P.Value
+cpg_pvalues <- h_schlyrs$P.Value
 names(cpg_pvalues) <- h_schlyrs$CpG
 gsa_result6 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- sh_livegpar$P.Value
+cpg_pvalues <- h_livegpar$P.Value
 names(cpg_pvalues) <- h_livegpar$CpG
 gsa_result7 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- sh_chsmk$P.Value
+cpg_pvalues <- h_chsmk$P.Value
 names(cpg_pvalues) <- h_chsmk$CpG
 gsa_result8 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
@@ -158,12 +170,12 @@ gsa_result8 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
 
 ```
 
-### M3/Primary
+### M3/Health, SES, Behavior
 
 ```{r}
 
-cpg_pvalues <- rural_smk_8$P.Value
-names(cpg_pvalues) <- rural_smk_8$CpG
+cpg_pvalues <- rural_m3$P.Value
+names(cpg_pvalues) <- rural_m3$CpG
 gsa_result9 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
@@ -174,14 +186,14 @@ gsa_result10 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- livegpar_smk_10$P.Value
-names(cpg_pvalues) <- livegpar_smk_10$CpG
+cpg_pvalues <- livegpar_m3$P.Value
+names(cpg_pvalues) <- livegpar_m3$CpG
 gsa_result11 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- chsmk_ds$P.Value
-names(cpg_pvalues) <- chsmk_ds$CpG
+cpg_pvalues <- chsmk_m3$P.Value
+names(cpg_pvalues) <- chsmk_m3$CpG
 gsa_result12 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
@@ -192,7 +204,37 @@ gsa_result12 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
 
 ```{r}
 
-sheets_methylGSA = list('childrural(Health)' = gsa_result1, 'childrural(Health+Socioeconomic+Behavior)' = gsa_result5, 'childrural(Primary)' = gsa_result9, 'SCHLYRS(Health)' = gsa_result2, 'SCHLYRS(Health+Socioeconomic+Behavior)' = gsa_result6, 'SCHLYRS(Primary)' = gsa_result10, 'LIVEGPAR(Health)' = gsa_result3, 'LIVEGPAR(Health+Socioeconomic+Behavior)' = gsa_result7, 'LIVEGPAR(Primary)' = gsa_result11, 'CHSMOKE(Health)' = gsa_result4, 'CHSMOKE(Health+Socioeconomic+Behavior)' = gsa_result8, 'CHSMOKE(Primary)' = gsa_result12)
+sheets_methylGSA = list('childrural(Core)' = gsa_result1, 'childrural(Health Only)' = gsa_result5, 'childrural(Health+SES+Behavior)' = gsa_result9, 'SCHLYRS(Core)' = gsa_result2, 'SCHLYRS(Health Only)' = gsa_result6, 'SCHLYRS(Health+SES+Behavior)' = gsa_result10, 'LIVEGPAR(Core)' = gsa_result3, 'LIVEGPAR(Health Only)' = gsa_result7, 'LIVEGPAR(Health+SES+Behavior)' = gsa_result11, 'CHSMOKE(Core)' = gsa_result4, 'CHSMOKE(Health Only)' = gsa_result8, 'CHSMOKE(Health+SES+Behavior)' = gsa_result12)
 writexl::write_xlsx(sheets_methylGSA, 'Manuscript/EWAS/Supplemental Table 10-Gene Ontology Pathway Enrichment Results.xlsx')
+
+```
+
+
+## UPSET PLOT
+```{r}
+
+### Remove rownames
+rownames(gsa_result9) <- NULL
+rownames(gsa_result10) <- NULL
+rownames(gsa_result11) <- NULL
+rownames(gsa_result12) <- NULL
+
+### Subset columns for plotting
+gsa_rural3 <- dplyr::select(gsa_result9, "Description", "Size", "enrichmentScore", "NES", "pvalue", "padj")
+gsa_schlyrs3 <- dplyr::select(gsa_result10, "Description", "Size", "enrichmentScore", "NES", "pvalue", "padj")
+gsa_livegpar3 <- dplyr::select(gsa_result11, "Description", "Size", "enrichmentScore", "NES", "pvalue", "padj")
+gsa_chsmk3 <- dplyr::select(gsa_result12, "Description", "Size", "enrichmentScore", "NES", "pvalue", "padj")
+
+### Compare top sites across exposures
+png(here("Manuscript/GSEA_upsetplot_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
+
+upset(fromList(
+  list("Grew up in a rural area" = gsa_rural3$CpG[gsa_rural3$pvalue < 0.0001],
+        "Years in school" = gsa_schlyrs3$CpG[gsa_schlyrs3$pvalue < 0.0001],
+        "Live with a grandparent" = gsa_livegpar3$CpG[gsa_livegpar3$pvalue < 0.0001],
+        "Smoking during childhood" = gsa_chsmk3$CpG[gsa_chsmk3$pvalue < 0.0001])
+    ), nsets=4)
+
+dev.off()
 
 ```

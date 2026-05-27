@@ -16,7 +16,7 @@ execute:
 ```{r, results='hide', message=FALSE}
 library(tidyverse)
 library(qs)
-library(ewastools)
+library(ewastools) 
 library(grid)
 library(here)
 library(writexl)
@@ -32,7 +32,7 @@ beta <- qread("HRS_BMIQ_filtered.qs")
 dim(beta)
 
 # Load complete analytic dataset file from 01_DataManage_Exclusion.qmd
-pheno <- readRDS("Jan162026-Updates/HRS_DNAm_meta_Cell9_Includedsubset20261601.RDS") 
+pheno <- readRDS("Jan162026-Updates/March172026/HRS_DNAm_meta_Cell9_Includedsubset20261703.RDS") 
 
 # Save as new dataframe
 saveRDS(pheno, file = "Jan162026-Updates/pheno.RDS")
@@ -47,7 +47,7 @@ gc()
 sample_ids = colnames(beta)
 length(sample_ids) # 3980
 pheno_subset = pheno %>% filter(Basename %in% sample_ids)
-dim(pheno_subset) # dim = (3558,28)
+dim(pheno_subset) # dim = (3562,28)
 
 # Reorder the columns of beta to match the order of sample IDs in pheno_subset
 beta_test_ordered = beta[, pheno_subset$Basename]
@@ -60,41 +60,69 @@ if (!all(colnames(beta_test_ordered) == pheno_subset$Basename)) {
 
 ## Set-up Covariates for EWAS Models
 
-### M1/Health Only (h_exposure): DNAm \~ age + sex + race/ethnicity + adult health variables + GR + NK + B + CD4 + CD8 + plate
+### M1/Core: DNAm \~ age + sex + race/ethnicity + GR + NK + B + CD4 + CD8 + plate
 
 ```{r}
-covariates_childruralh = c('childrural_democoggen', 'age', 'sex', 'raceethnicity_collapsed', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
-covariates_schlyrsh = c('SCHLYRS_rev', 'age', 'sex', 'raceethnicity_collapsed', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
-covariates_livegparh = c('LIVEGPAR_R', 'age', 'sex', 'raceethnicity_collapsed', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
-covariates_chsmkh = c('CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
+covariates_childruralc = c('childrural_democoggen', 'age', 'sex', 'raceethnicity_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+covariates_schlyrsc = c('SCHLYRS_rev', 'age', 'sex', 'raceethnicity_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+covariates_livegparc = c('LIVEGPAR_R', 'age', 'sex', 'raceethnicity_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+covariates_chsmkc = c('CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
 ```
 
-### M2/Health, socioeconomic, and behavior Variables(sh_exposure): DNAm \~ age + sex + race/ethnicity + socioeconomic and behavior variable\* + adult health variables +GR + NK + B + CD4 + CD8 + plate
+### M2/Health Only (h_exposure): DNAm \~ age + sex + race/ethnicity + adult health variables + GR + NK + B + CD4 + CD8 + plate
 
 ```{r}
-covariates_childruralh2 = c('childrural_democoggen', 'age', 'sex', 'raceethnicity_collapsed', 'BEALE_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
-covariates_schlyrsh2 = c('SCHLYRS_rev', 'age', 'sex', 'raceethnicity_collapsed', 'Parent_Educ', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
-covariates_livegparh2 = c('LIVEGPAR_R', 'age', 'sex', 'raceethnicity_collapsed', 'ATOTB_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
-covariates_chsmkh2 = c('CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
+covariates_childruralh = c('childrural_democoggen', 'age', 'sex', 'raceethnicity_collapsed', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+covariates_schlyrsh = c('SCHLYRS_rev', 'age', 'sex', 'raceethnicity_collapsed', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+covariates_livegparh = c('LIVEGPAR_R', 'age', 'sex', 'raceethnicity_collapsed', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+covariates_chsmkh = c('CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
 ```
 
 ### M3/Primary (rural_smk_8, schlyrs_m3, livegpar_smk_10, chsmk_ds): DNAm \~ age + sex + race/ethnicity + adult smoking + socioeconomic and behavior variable + adult health variables + GR + NK + B + CD4 + CD8 + plate
 
 ```{r}
-covar_rural_ds2 = c('childrural_democoggen', 'age', 'sex', 'raceethnicity_collapsed', 'BEALE_latest', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
-covar_schlyrs_ds2 = c('SCHLYRS_rev', 'age', 'sex', 'raceethnicity_collapsed', 'Parent_Educ', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
-covar_livegpar_ds2 = c('LIVEGPAR_R', 'age', 'sex', 'raceethnicity_collapsed', 'ATOTB_latest', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8')
-covar_chsmk_ds_ds2_ds6 = c('CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'smoke_latest', 'ds_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'Sample_Plate', 'GR', 'NK', 'B', 'CD4', 'CD8') 
+covar_rural_ds2 = c('childrural_democoggen', 'age', 'sex', 'raceethnicity_collapsed', 'BEALE_latest', 'Parent_Educ', 'ATOTB_latest', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+covar_schlyrs_ds2 = c('SCHLYRS_rev', 'age', 'sex', 'raceethnicity_collapsed', 'BEALE_latest', 'Parent_Educ', 'ATOTB_latest', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+covar_livegpar_ds2 = c('LIVEGPAR_R', 'age', 'sex', 'raceethnicity_collapsed', 'BEALE_latest', 'Parent_Educ', 'ATOTB_latest', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+covar_chsmk_ds_ds2_ds6 = c('CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'BEALE_latest', 'Parent_Educ', 'ATOTB_latest', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate') 
 ```
+
+### Combined Exposure Model: DNAm \~ rural + schlyrs+ livegpar + chsmk + age + sex + race/ethnicity + socioeconomic and behavior variable + adult health variables + GR + NK + B + CD4 + CD8 + plate
+
+```{r}
+covar_allexp = c('childrural_democoggen', 'SCHLYRS_rev', 'LIVEGPAR_R', 'CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'BEALE_latest', 'Parent_Educ', 'ATOTB_latest', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+```
+
+
 
 ## Create the design matrix
 
-### M1/Health Only (h_exposure): DNAm \~ age + sex + race/ethnicity + adult health variables + GR + NK + B + CD4 + CD8 + plate
+### M1/Core: DNAm \~ age + sex + race/ethnicity + GR + NK + B + CD4 + CD8 + plate
+
+```{r}
+design_formula_c = as.formula(paste("~", paste(covariates_childruralc, collapse = " + ")))
+design_matrix_c = model.matrix(design_formula_c, data = pheno_subset)
+dim(design_matrix_c) # dim = (3562, 63)
+
+design_formula2_c = as.formula(paste("~", paste(covariates_schlyrsc, collapse = " + ")))
+design_matrix2_c = model.matrix(design_formula2_c, data = pheno_subset)
+dim(design_matrix2_c) 
+
+design_formula3_c = as.formula(paste("~", paste(covariates_livegparc, collapse = " + ")))
+design_matrix3_c = model.matrix(design_formula3_c, data = pheno_subset)
+dim(design_matrix3_c)
+
+design_formula4_c = as.formula(paste("~", paste(covariates_chsmkc, collapse = " + ")))
+design_matrix4_c = model.matrix(design_formula4_c, data = pheno_subset)
+dim(design_matrix4_c) 
+```
+
+### M2/Health Only (h_exposure): DNAm \~ age + sex + race/ethnicity + adult health variables + GR + NK + B + CD4 + CD8 + plate
 
 ```{r}
 design_formula_h = as.formula(paste("~", paste(covariates_childruralh, collapse = " + ")))
 design_matrix_h = model.matrix(design_formula_h, data = pheno_subset)
-dim(design_matrix_h) # dim = (3558, 63)
+dim(design_matrix_h) # dim = (3562, 63)
 
 design_formula2_h = as.formula(paste("~", paste(covariates_schlyrsh, collapse = " + ")))
 design_matrix2_h = model.matrix(design_formula2_h, data = pheno_subset)
@@ -109,36 +137,16 @@ design_matrix4_h = model.matrix(design_formula4_h, data = pheno_subset)
 dim(design_matrix4_h) 
 ```
 
-### M2/Health, socioeconomic, and behavior Variables (sh_exposure): DNAm \~ age + sex + race/ethnicity + socioeconomic and behavior variable\* + adult health variables +GR + NK + B + CD4 + CD8 + plate
-
-```{r}
-design_formula_h2 = as.formula(paste("~", paste(covariates_childruralh2, collapse = " + ")))
-design_matrix_h2 = model.matrix(design_formula_h2, data = pheno_subset)
-dim(design_matrix_h2) # dim = (3558, 65)
-
-design_formula2_h2 = as.formula(paste("~", paste(covariates_schlyrsh2, collapse = " + ")))
-design_matrix2_h2 = model.matrix(design_formula2_h2, data = pheno_subset)
-dim(design_matrix2_h2) 
-
-design_formula3_h2 = as.formula(paste("~", paste(covariates_livegparh2, collapse = " + ")))
-design_matrix3_h2 = model.matrix(design_formula3_h2, data = pheno_subset)
-dim(design_matrix3_h2)
-
-design_formula4_h2 = as.formula(paste("~", paste(covariates_chsmkh2, collapse = " + ")))
-design_matrix4_h2 = model.matrix(design_formula4_h2, data = pheno_subset)
-dim(design_matrix4_h2) 
-```
-
 ### M3/Primary (rural_smk_8, schlyrs_m3, livegpar_smk_10, chsmk_ds): DNAm \~ age + sex + race/ethnicity + adult smoking + socioeconomic and behavior variable + adult health variables + GR + NK + B + CD4 + CD8 + plate
 
 ```{r}
 design_formula_ds8 = as.formula(paste("~", paste(covar_rural_ds2, collapse = " + ")))
 design_matrix_ds8 = model.matrix(design_formula_ds8, data = pheno_subset)
-dim(design_matrix_ds8) # dim = (3558, 67)
+dim(design_matrix_ds8) # dim = (3562, 67)
 
 design_formula_ds9 = as.formula(paste("~", paste(covar_schlyrs_ds2, collapse = " + ")))
 design_matrix_ds9 = model.matrix(design_formula_ds9, data = pheno_subset)
-dim(design_matrix_ds9) # dim = (3558, 66)
+dim(design_matrix_ds9) # dim = (3562, 66)
 
 design_formula_ds10 = as.formula(paste("~", paste(covar_livegpar_ds2, collapse = " + ")))
 design_matrix_ds10 = model.matrix(design_formula_ds10, data = pheno_subset)
@@ -149,6 +157,16 @@ design_matrix_ds4 = model.matrix(design_formula_ds4, data = pheno_subset)
 dim(design_matrix_ds4) 
 ```
 
+
+### Combined Exposure Model: DNAm \~ rural + schlyrs+ livegpar + chsmk + age + sex + race/ethnicity + adult smoking + socioeconomic and behavior variable + adult health variables + GR + NK + B + CD4 + CD8 + plate
+
+```{r}
+design_formula_all = as.formula(paste("~", paste(covar_allexp, collapse = " + ")))
+design_matrix_all = model.matrix(design_formula_all, data = pheno_subset)
+dim(design_matrix_all) # dim = (3562, 67)
+
+```
+
 ## Run EWAS analysis
 
 ```{r}
@@ -157,7 +175,21 @@ library(limma)
 # Fit the linear models using limma
 beta_matrix = as.matrix(beta_test_ordered)
 
-# Fit M1/Health Only 
+# Fit M1/Core
+fit_c = lmFit(beta_matrix, design_matrix_c)
+fit_c = eBayes(fit_c)
+
+fit2_c = lmFit(beta_matrix, design_matrix2_c)
+fit2_c = eBayes(fit2_c)
+
+fit3_c = lmFit(beta_matrix, design_matrix3_c)
+fit3_c = eBayes(fit3_c)
+
+fit4_c = lmFit(beta_matrix, design_matrix4_c)
+fit4_c = eBayes(fit4_c)
+
+
+# Fit M2/Health Only 
 fit_h = lmFit(beta_matrix, design_matrix_h)
 fit_h = eBayes(fit_h)
 
@@ -171,21 +203,7 @@ fit4_h = lmFit(beta_matrix, design_matrix4_h)
 fit4_h = eBayes(fit4_h)
 
 
-# Fit M2/Health, socioeconomic, and behavior Variables
-fit_h2 = lmFit(beta_matrix, design_matrix_h2)
-fit_h2 = eBayes(fit_h2)
-
-fit2_h2 = lmFit(beta_matrix, design_matrix2_h2)
-fit2_h2 = eBayes(fit2_h2)
-
-fit3_h2 = lmFit(beta_matrix, design_matrix3_h2)
-fit3_h2 = eBayes(fit3_h2)
-
-fit4_h2 = lmFit(beta_matrix, design_matrix4_h2)
-fit4_h2 = eBayes(fit4_h2)
-
-
-#Fit M3/Primary
+#Fit M3/Primary [START HERE]
 fit_ds8 = lmFit(beta_matrix, design_matrix_ds8)
 fit_ds8 = eBayes(fit_ds8)
 
@@ -197,11 +215,36 @@ fit_ds10 = eBayes(fit_ds10)
 
 fit_ds4 = lmFit(beta_matrix, design_matrix_ds4)
 fit_ds4 = eBayes(fit_ds4)
+
+#Fit Combined Exposures
+fit_all = lmFit(beta_matrix, design_matrix_all)
+fit_all = eBayes(fit_all)
+
 ```
 
 ## EXTRACT EWAS MODEL RESULTS
 
-### M1/Health Only (h_exposure): DNAm \~ age + sex + race/ethnicity + adult health variables + GR + NK + B + CD4 + CD8 + plate
+### M1/Core: DNAm \~ age + sex + race/ethnicity + GR + NK + B + CD4 + CD8 + plate
+
+```{r}
+childrural_col_c = which(colnames(design_matrix_c) == 'childrural_democoggenYes')
+results_rural_c = topTable(fit_c, coef = childrural_col_c, number = Inf, adjust.method = "BH")
+head(results_rural_c)
+
+schlyrs_col_c = which(colnames(design_matrix2_c) == 'SCHLYRS_rev')
+results_schlyrs_c = topTable(fit2_c, coef = schlyrs_col_c, number = Inf, adjust.method = "BH")
+head(results_schlyrs_c)
+
+livegpar_col_c = which(colnames(design_matrix3_c) == 'LIVEGPAR_RYes')
+results_livegpar_c = topTable(fit3_c, coef = livegpar_col_c, number = Inf, adjust.method = "BH")
+head(results_livegpar_c)
+
+chsmk_col_c = which(colnames(design_matrix4_c) == 'CHSMOKE_RYes')
+results_chsmk_c = topTable(fit4_c, coef = chsmk_col_c, number = Inf, adjust.method = "BH")
+head(results_chsmk_c)
+```
+
+### M2/Health Only (h_exposure): DNAm \~ age + sex + race/ethnicity + adult health variables + GR + NK + B + CD4 + CD8 + plate
 
 ```{r}
 childrural_col_h = which(colnames(design_matrix_h) == 'childrural_democoggenYes')
@@ -219,26 +262,6 @@ head(results_livegpar_h)
 chsmk_col_h = which(colnames(design_matrix4_h) == 'CHSMOKE_RYes')
 results_chsmk_h = topTable(fit4_h, coef = chsmk_col_h, number = Inf, adjust.method = "BH")
 head(results_chsmk_h)
-```
-
-### M2/Health, socioeconomic, and behavior Variables (sh_exposure): DNAm \~ age + sex + race/ethnicity + socioeconomic and behavior variable\* + adult health variables +GR + NK + B + CD4 + CD8 + plate
-
-```{r}
-childrural_col_h2 = which(colnames(design_matrix_h2) == 'childrural_democoggenYes')
-results_rural_h2 = topTable(fit_h2, coef = childrural_col_h2, number = Inf, adjust.method = "BH")
-head(results_rural_h2)
-
-schlyrs_col_h2 = which(colnames(design_matrix2_h2) == 'SCHLYRS_rev')
-results_schlyrs_h2 = topTable(fit2_h2, coef = schlyrs_col_h2, number = Inf, adjust.method = "BH")
-head(results_schlyrs_h2)
-
-livegpar_col_h2 = which(colnames(design_matrix3_h2) == 'LIVEGPAR_RYes')
-results_livegpar_h2 = topTable(fit3_h2, coef = livegpar_col_h2, number = Inf, adjust.method = "BH")
-head(results_livegpar_h2)
-
-chsmk_col_h2 = which(colnames(design_matrix4_h2) == 'CHSMOKE_RYes')
-results_chsmk_h2 = topTable(fit4_h2, coef = chsmk_col_h2, number = Inf, adjust.method = "BH")
-head(results_chsmk_h2)
 ```
 
 ### M3/Primary (rural_smk_8, schlyrs_m3, livegpar_smk_10, chsmk_ds): DNAm \~ age + sex + race/ethnicity + adult smoking + socioeconomic and behavior variable + adult health variables + GR + NK + B + CD4 + CD8 + plate
@@ -261,11 +284,41 @@ results_chsmk_ds = topTable(fit_ds4, coef = chsmk_ds, number = Inf, adjust.metho
 head(results_chsmk_ds)
 ```
 
+
+### Combined Exposure Model: DNAm \~ rural + schlyrs+ livegpar + chsmk + age + sex + race/ethnicity + adult smoking + socioeconomic and behavior variable + adult health variables + GR + NK + B + CD4 + CD8 + plate
+
+```{r}
+exp_coefs <- c(childrural = "childrural_democoggenYes", schlyrs = "SCHLYRS_rev", livegpar = "LIVEGPAR_RYes", chsmk = "CHSMOKE_RYes"
+)
+ 
+
+results_allexp <- list(childrural = topTable(fit_all, coef = exp_coefs["childrural"], number = Inf, adjust.method = "BH"), 
+                       schlyrs = topTable(fit_all, coef = exp_coefs["schlyrs"], number = Inf, adjust.method = "BH"), 
+                       livegpar = topTable(fit_all, coef = exp_coefs["livegpar"], number = Inf, adjust.method = "BH"), 
+                       chsmk = topTable(fit_all, coef = exp_coefs["chsmk"], number = Inf, adjust.method = "BH"))
+
+
+result_allexplong <- dplyr::bind_rows(dplyr::mutate(tibble::rownames_to_column(results_allexp$childrural, var = "CpG"), exposure = "childrural"),
+                dplyr::mutate(tibble::rownames_to_column(results_allexp$schlyrs, var = "CpG"), exposure = "schlyrs"),
+                dplyr::mutate(tibble::rownames_to_column(results_allexp$livegpar, var = "CpG"), exposure = "livegpar"),
+                dplyr::mutate(tibble::rownames_to_column(results_allexp$chsmk, var = "CpG"), exposure = "chsmk"))
+```
+
+
 ## ANNOTATE AND EXPORT MODEL RESULTS
 
 ```{r}
 # Reset the row names as a column for merging
-  ## M1/Health Only
+  ## M1/Core 
+results_rural_c = results_rural_c %>% mutate(CpG = rownames(results_rural_c))
+
+results_schlyrs_c = results_schlyrs_c %>% mutate(CpG = rownames(results_schlyrs_c))
+
+results_livegpar_c = results_livegpar_c %>% mutate(CpG = rownames(results_livegpar_c))
+
+results_chsmk_c = results_chsmk_c %>% mutate(CpG = rownames(results_chsmk_c))
+
+  ## M2/Health Only
 results_rural_h = results_rural_h %>% mutate(CpG = rownames(results_rural_h))
 
 results_schlyrs_h = results_schlyrs_h %>% mutate(CpG = rownames(results_schlyrs_h))
@@ -273,15 +326,6 @@ results_schlyrs_h = results_schlyrs_h %>% mutate(CpG = rownames(results_schlyrs_
 results_livegpar_h = results_livegpar_h %>% mutate(CpG = rownames(results_livegpar_h))
 
 results_chsmk_h = results_chsmk_h %>% mutate(CpG = rownames(results_chsmk_h))
-
-  ## M2/Health, socioeconomic, and behavior Variables
-results_rural_h2 = results_rural_h2 %>% mutate(CpG = rownames(results_rural_h2))
-
-results_schlyrs_h2 = results_schlyrs_h2 %>% mutate(CpG = rownames(results_schlyrs_h2))
-
-results_livegpar_h2 = results_livegpar_h2 %>% mutate(CpG = rownames(results_livegpar_h2))
-
-results_chsmk_h2 = results_chsmk_h2 %>% mutate(CpG = rownames(results_chsmk_h2))
 
   ## M3/Primary
 results_rural_ds8 = results_rural_ds8 %>% mutate(CpG = rownames(results_rural_ds8))
@@ -291,6 +335,9 @@ results_schlyrs_ds9 = results_schlyrs_ds9 %>% mutate(CpG = rownames(results_schl
 results_livegpar_ds10 = results_livegpar_ds10 %>% mutate(CpG = rownames(results_livegpar_ds10))
 
 results_chsmk_ds = results_chsmk_ds %>% mutate(CpG = rownames(results_chsmk_ds))
+
+  ## Combined Exposures
+results_allexp_long = results_allexp_long %>% mutate(CpG = rownames(results_allexp_long))
 
 
 # Load annotation data for the CpG sites
@@ -332,69 +379,78 @@ dim(annotation_df)  #865859      6
 ### EXPORT AS NEW DATA FILE
 
 ```{r}
-## M1/Health Only
+## M1/Core 
+results_rural_cannotated = merge(results_rural_c, annotation_df, by = "CpG")
+# Ensure p-values are numeric
+results_rural_cannotated$P = as.numeric(results_rural_cannotated$P.Value)
+save(results_rural_cannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm1_childrural_core.rda")
+
+results_schlyrs_cannotated = merge(results_schlyrs_c, annotation_df, by = "CpG")
+# Ensure p-values are numeric
+results_schlyrs_cannotated$P = as.numeric(results_schlyrs_cannotated$P.Value)
+save(results_schlyrs_cannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm1_schlyrs_core.rda")
+
+results_livegpar_cannotated = merge(results_livegpar_c, annotation_df, by = "CpG")
+# Ensure p-values are numeric
+results_livegpar_cannotated$P = as.numeric(results_livegpar_cannotated$P.Value)
+save(results_livegpar_cannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm1_livegpar_core.rda")
+
+results_chsmk_cannotated = merge(results_chsmk_c, annotation_df, by = "CpG")
+# Ensure p-values are numeric
+results_chsmk_cannotated$P = as.numeric(results_chsmk_cannotated$P.Value)
+save(results_chsmk_cannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm1_chsmk_core.rda")
+
+
+
+## M2/Health Only
 results_rural_hannotated = merge(results_rural_h, annotation_df, by = "CpG")
 # Ensure p-values are numeric
 results_rural_hannotated$P = as.numeric(results_rural_hannotated$P.Value)
-save(results_rural_hannotated, file = "Jan162026-Updates/05_model_results/resultsm1_childrural_hm.rda")
+save(results_rural_hannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm1_childrural_hm.rda")
 
 results_schlyrs_hannotated = merge(results_schlyrs_h, annotation_df, by = "CpG")
 # Ensure p-values are numeric
 results_schlyrs_hannotated$P = as.numeric(results_schlyrs_hannotated$P.Value)
-save(results_schlyrs_hannotated, file = "Jan162026-Updates/05_model_results/resultsm1_schlyrs_h.rda")
+save(results_schlyrs_hannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm1_schlyrs_h.rda")
 
 results_livegpar_hannotated = merge(results_livegpar_h, annotation_df, by = "CpG")
 # Ensure p-values are numeric
 results_livegpar_hannotated$P = as.numeric(results_livegpar_hannotated$P.Value)
-save(results_livegpar_hannotated, file = "Jan162026-Updates/05_model_results/resultsm1_livegpar_h.rda")
+save(results_livegpar_hannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm1_livegpar_h.rda")
 
 results_chsmk_hannotated = merge(results_chsmk_h, annotation_df, by = "CpG")
 # Ensure p-values are numeric
 results_chsmk_hannotated$P = as.numeric(results_chsmk_hannotated$P.Value)
-save(results_chsmk_hannotated, file = "Jan162026-Updates/05_model_results/resultsm1_chsmk_h.rda")
+save(results_chsmk_hannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm1_chsmk_h.rda")
 
-
-
-## M2/Health, socioeconomic, and behavior Variables
-results_rural_hannotated2 = merge(results_rural_h2, annotation_df, by = "CpG")
-  ## Ensure p-values are numeric
-results_rural_hannotated2$P = as.numeric(results_rural_hannotated2$P.Value)
-save(results_rural_hannotated2, file = "Jan162026-Updates/05_model_results/resultsm2_childrural_h2.rda")
-
-results_schlyrs_hannotated2= merge(results_schlyrs_h2, annotation_df, by = "CpG")
-  ## Ensure p-values are numeric
-results_schlyrs_hannotated2$P = as.numeric(results_schlyrs_hannotated2$P.Value)
-save(results_schlyrs_hannotated2, file = "Jan162026-Updates/05_model_results/resultsm2_schlyrs_h2.rda")
-
-results_livegpar_hannotated2 = merge(results_livegpar_h2, annotation_df, by = "CpG")
-  ## Ensure p-values are numeric
-results_livegpar_hannotated2$P = as.numeric(results_livegpar_hannotated2$P.Value)
-save(results_livegpar_hannotated2, file = "Jan162026-Updates/05_model_results/resultsm2_livegpar_h2.rda")
-
-results_chsmk_hannotated2 = merge(results_chsmk_h2, annotation_df, by = "CpG")
-  ## Ensure p-values are numeric
-results_chsmk_hannotated2$P = as.numeric(results_chsmk_hannotated2$P.Value)
-save(results_chsmk_hannotated2, file = "Jan162026-Updates/05_model_results/resultsm2_chsmk_h2.rda")
 
 
 ## M3/Primary
 results_rural_ds8annotated = merge(results_rural_ds8, annotation_df, by = "CpG")
   ## Ensure p-values are numeric
 results_rural_ds8annotated$P = as.numeric(results_rural_ds8annotated$P.Value)
-save(results_rural_ds8annotated, file = "Jan162026-Updates/05_model_results/resultsm3_rural_ds8.rda")
+save(results_rural_ds8annotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm3_rural_ds8.rda")
 
 results_schlyrs_ds9annotated = merge(results_schlyrs_ds9, annotation_df, by = "CpG")
   ## Ensure p-values are numeric
 results_schlyrs_ds9annotated$P = as.numeric(results_schlyrs_ds9annotated$P.Value)
-save(results_schlyrs_ds9annotated, file = "Jan162026-Updates/05_model_results/resultsm3_schlyrs_ds9.rda")
+save(results_schlyrs_ds9annotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm3_schlyrs_ds9.rda")
 
 results_livegpar_ds10annotated = merge(results_livegpar_ds10, annotation_df, by = "CpG")
   ## Ensure p-values are numeric
 results_livegpar_ds10annotated$P = as.numeric(results_livegpar_ds10annotated$P.Value)
-save(results_livegpar_ds10annotated, file = "Jan162026-Updates/05_model_results/resultsm3_livegpar_ds10.rda")
+save(results_livegpar_ds10annotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm3_livegpar_ds10.rda")
 
 results_chsmk_dsannotated= merge(results_chsmk_ds, annotation_df, by = "CpG")
   ## Ensure p-values are numeric
 results_chsmk_dsannotated$P = as.numeric(results_chsmk_dsannotated$P.Value)
-save(results_chsmk_dsannotated, file = "Jan162026-Updates/05_model_results/resultsm3_chsmk_ds.rda")
+save(results_chsmk_dsannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm3_chsmk_ds.rda")
+
+
+## Combined Exposures
+results_allexpannotated = merge(results_allexp_long, annotation_df, by = "CpG")
+  ## Ensure p-values are numeric
+results_allexpannotated$P = as.numeric(results_allexpannotated$P.Value)
+save(results_allexpannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm3_allexposures_2026Apr29.rda")
+
 ```

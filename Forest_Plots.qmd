@@ -33,14 +33,14 @@ library(cowplot)
 ```{r, results='hide', message=FALSE}
 
 ## Fully Adjusted Results
-adjusted_mrural_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/ChildRural_M3_AA_Summary20261501.xlsx")
-adjusted_gmrural_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/ChildRural_M3_GM_Summary20261501.xlsx")
-adjusted_mschlyrs_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/SCHLYRS_M3_AA_Summary20261501.xlsx")
-adjusted_gmschlyrs_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/SCHLYRS_M3_GM_Summary20261501.xlsx")
-adjusted_mlivegpar_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/LIVEGPAR_M3_AA_Summary20261501.xlsx")
-adjusted_gmlivegpar_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/LIVEGPAR_M3_GM_Summary20261501.xlsx")
-adjusted_mchsmk_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/CHSMK_M3_AA_Summary20261501.xlsx")
-adjusted_gmchsmk_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/CHSMK_M3_GM_Summary20261501.xlsx")
+adjusted_mrural_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/ChildRural_M3_AA_Summary20262003.xlsx")
+adjusted_gmrural_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/ChildRural_M3_GM_Summary20262003.xlsx")
+adjusted_mschlyrs_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/SCHLYRS_M3_AA_Summary20262003.xlsx")
+adjusted_gmschlyrs_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/SCHLYRS_M3_GM_Summary20262003.xlsx")
+adjusted_mlivegpar_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/LIVEGPAR_M3_AA_Summary20262003.xlsx")
+adjusted_gmlivegpar_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/LIVEGPAR_M3_GM_Summary20262003.xlsx")
+adjusted_mchsmk_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/CHSMK_M3_AA_Summary20262003.xlsx")
+adjusted_gmchsmk_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/CHSMK_M3_GM_Summary20262003.xlsx")
 
 ```
 
@@ -57,12 +57,13 @@ source('ELE_DNAm_functions.R')
 ```{r, warning=FALSE}
 
 ## Define model terms to exclude for plotting
-terms_to_exclude <- c("(Intercept)", "age", "sexMale", "raceethnicity_collapsedNH-Black", "BEALE_latestSuburban", "BEALE_latestEx-urban",
+terms_to_exclude <- c("(Intercept)", "age", "sexMale", "raceethnicity_collapsedNH-Black",
+                      "BEALE_latestSuburban", "BEALE_latestEx-urban",
                       "Parent_Educ<High School", "ATOTB_latest",
-                      "raceethnicity_collapsedOther/Hispanic", "smoke_latestCurrent", "smoke_latestFormer", "HIBP_latestYes",
-                      "DIAB_latestYes", "VIGACT_collapsed1 per week/1-3 per month", "VIGACT_collapsedNever", "ds_latestCurrent", "ds_latestFormer",
-                      "GR", "NK", "B", "CD8", 
-                      "CD4", "Sample_Plate")
+                      "raceethnicity_collapsedOther/Hispanic", 
+                      "smoke_latestCurrent", "smoke_latestFormer", "HIBP_latestYes",
+                      "DIAB_latestYes", "VIGACT_collapsed1 per week/1-3 per month", 
+                      "VIGACT_collapsedNever", "GR", "NK", "B", "CD8", "CD4", "Sample_Plate")
 
 ## Age Acceleration
   ## Create filtered data for plots
@@ -123,10 +124,10 @@ forest_plot_GM_ALLM3
 forest_plotcombined <- plot_grid(forest_plot_AA_ALLM3, forest_plot_GM_ALLM3, ncol = 2, align = "h", axis = "l")
 
 ## Export
-save_plot("Manuscript/20261601/2026Feb19_supplfig3_forest_plots_m3_AA.svg", plot = forest_plot_AA_ALLM3, base_width = 18, base_height = 12)
-save_plot("Manuscript/20261601/2026Feb19_supplfig4_forest_plots_m3_GM.svg", plot = forest_plot_GM_ALLM3, base_width = 20, base_height = 12)
+save_plot("Manuscript/2026Mar20_supplfig3_forest_plots_m3_AA.svg", plot = forest_plot_AA_ALLM3, base_width = 18, base_height = 12)
+save_plot("Manuscript/2026Mar20_supplfig4_forest_plots_m3_GM.svg", plot = forest_plot_GM_ALLM3, base_width = 20, base_height = 12)
 
-save_plot("Manuscript/20261601/2026Feb19_supplfig3_combinedforest_plots_m3_AAGM.svg", plot = forest_plotcombined, base_width = 35, base_height = 10)
+save_plot("Manuscript/2026Mar20_supplfig3_combinedforest_plots_m3_AAGM.svg", plot = forest_plotcombined, base_width = 35, base_height = 10)
 
 
 ```
