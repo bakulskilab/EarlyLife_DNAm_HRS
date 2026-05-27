@@ -28,11 +28,11 @@ the Health and Retirement Study. Journal. Year/Volume. doi/PMID
 
 ### DNA Methylation Age Acceleration and Global Methylation Files
 
-* __ELE_DNAm_functions.R__ - functions to run code files 03, 04, 05, Model_Diagnostics, and Forest_Plots
+* __ELE_DNAm_functions.R__ - functions to run code files 03, 04, Model_Diagnostics, and Forest_Plots
 
-* __03_Primary.qmd__ – linear regression models for primary models for DNAm age acceleration analysis
+* __03_Primary.qmd__ – linear regression models for unadjusted, health behavior SES, and mutually adjusted models for DNAm age acceleration analysis
 
-* __04_SensitivityModels.qmd__ – linear regression models for health only and health and adult exposure sensitivity models for DNAm age acceleration analysis
+* __04_SensitivityModels.qmd__ – linear regression models for core and health only sensitivity models for DNAm age acceleration analysis
 
 * __Model_Diagnostics.qmd__ – diagnostic plots from DNAm age acceleration model results
 
@@ -42,13 +42,13 @@ the Health and Retirement Study. Journal. Year/Volume. doi/PMID
 
 ### Epigenome-Wide Association Study Files
 
-* __EWAS_function.R__ - functions for running code files 06, 07, 08, EWAS_Tables_Plots, and EWAS_Plots_Supplemental
+* __EWAS_function.R__ - functions for running code files 06 and EWAS_Tables_Plots
 
-* __05_Primary_Sensitvity_EWAS.qmd__ – epigenome-wide association study (EWAS) for primary, health only, and health and adult exposure sensitivity models 
+* __05_Primary_Sensitvity_EWAS.qmd__ – epigenome-wide association study (EWAS) for core, health only, and health behavior SES models 
 
-* __EWAS_Tables_Plots__ - plots and tables for epigenome-wide association study (EWAS) for primary and sensitivity from __05_Primary_Sensitvity_EWAS.qmd__ DNAm analysis
+* __EWAS_Tables_Plots__ - plots and tables for epigenome-wide association study (EWAS) for health behavior SES and sensitivity from __05_Primary_Sensitvity_EWAS.qmd__ DNAm analysis
 
-* __EWAS_Compare.qmd__ - table output to compare primary EWAS model results across exposures and two prior EWAS studies on maternal educational attainment (PMID: 38052982) and cigarette smoking (PMID: 27651444)
+* __EWAS_Compare.qmd__ - table output to compare health behavior SES EWAS model results across exposures and two prior EWAS studies on maternal educational attainment (PMID: 38052982) and cigarette smoking (PMID: 27651444)
 
 ### Gene Set Enrichment Analysis
 
