@@ -421,7 +421,7 @@ HRS_DNAm_meta_Cell9$DIAB_latest <- ordered(HRS_DNAm_meta_Cell9$DIAB_latest, leve
 HRS_DNAm_meta_Cell9$VIGACT_collapsed <- ordered(HRS_DNAm_meta_Cell9$VIGACT_collapsed, levels = c("Every day/>1 per week", "1 per week/1-3 per month", "Never"))
 HRS_DNAm_meta_Cell9$CHSMOKE_R <- ordered(HRS_DNAm_meta_Cell9$CHSMOKE_R, levels = c("Yes", "No"))
 HRS_DNAm_meta_Cell9$childrural_democoggen <- ordered(HRS_DNAm_meta_Cell9$childrural_democoggen, levels = c("Yes", "No"))
-HRS_DNAm_meta_Cell9$LIVEGPAR_R <- ordered(HRS_DNAm_meta_Cell9$LIVEGPAR_R, levels = c("No", "Yes"))
+HRS_DNAm_meta_Cell9$LIVEGPAR_R <- ordered(HRS_DNAm_meta_Cell9$LIVEGPAR_R, levels = c("Yes", "No"))
 
 
 rm(complete_7smk, hhidpn_to_mark_na)
@@ -543,7 +543,7 @@ complete$VIGACT_collapsed <- factor(complete$VIGACT_collapsed, ordered = FALSE)
 complete$childrural_democoggen <- relevel(complete$childrural_democoggen, ref = "No")        
 
   ## LIVEGPAR_R: most people did not live with a grandparent 
-complete$LIVEGPAR_R <- relevel(complete$LIVEGPAR_R, ref = "Yes")        
+complete$LIVEGPAR_R <- relevel(complete$LIVEGPAR_R, ref = "No")        
 
   ## CHSMOKE_R: most people said no
 complete$CHSMOKE_R <- relevel(complete$CHSMOKE_R, ref = "No")        
