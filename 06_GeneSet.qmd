@@ -33,28 +33,28 @@ library(methylGSA)
 
 ```{r}
 
-#M1: Core
-load("NewData/EWAS/resultsm1_childrural_core.rda")
-core_rural <- results_rural_cannotated
+#M1: Demographic
+load("NewData/EWAS/resultsm1_childrural_demographic.rda")
+demographic_rural <- results_rural_cannotated
 rm(results_rural_cannotated)
-core_rural <- core_rural %>% mutate(logFCpercent = logFC * 100)
+demographic_rural <- demographic_rural %>% mutate(logFCpercent = logFC * 100)
 
-load("NewData/EWAS/resultsm1_schlyrs_core.rda")
-core_schlyrs <- results_schlyrs_cannotated
+load("NewData/EWAS/resultsm1_schlyrs_demographic.rda")
+demographic_schlyrs <- results_schlyrs_cannotated
 rm(results_schlyrs_cannotated)
-core_schlyrs <- core_schlyrs %>% mutate(logFCpercent = logFC * 100)
+demographic_schlyrs <- demographic_schlyrs %>% mutate(logFCpercent = logFC * 100)
 
-load("NewData/EWAS/resultsm1_livegpar_core.rda")
-core_livegpar <- results_livegpar_cannotated
+load("NewData/EWAS/resultsm1_livegpar_demographic.rda")
+demographic_livegpar <- results_livegpar_cannotated
 rm(results_livegpar_cannotated)
-core_livegpar <- core_livegpar %>% mutate(logFCpercent = logFC * 100)
+demographic_livegpar <- demographic_livegpar %>% mutate(logFCpercent = logFC * 100)
 
-load("NewData/EWAS/resultsm1_chsmk_core.rda")
-core_chsmk <- results_chsmk_cannotated
+load("NewData/EWAS/resultsm1_chsmk_demographic.rda")
+demographic_chsmk <- results_chsmk_cannotated
 rm(results_chsmk_cannotated)
-core_chsmk <- core_chsmk %>% mutate(logFCpercent = logFC * 100)
+demographic_chsmk <- demographic_chsmk %>% mutate(logFCpercent = logFC * 100)
 
-#M2: Health Only
+#M2: Health 
 load("NewData/EWAS/resultsm1_childrural_hm.rda")
 h_rural <- results_rural_hannotated
 rm(results_rural_hannotated)
@@ -75,7 +75,7 @@ h_chsmk <- results_chsmk_hannotated
 rm(results_chsmk_hannotated)
 h_chsmk <- h_chsmk %>% mutate(logFCpercent = logFC * 100)
 
-#M3: Health, socioeconomic, and behavior Variables
+#M3: Socioeconomic and behavior 
 load("NewData/EWAS/resultsm3_rural_ds8.rda")
 rural_smk_8 <- results_rural_ds8annotated
 rm(results_rural_ds8annotated)
@@ -110,30 +110,30 @@ source('EWAS_function.R')
 
 # GENE SET ENRICHMENT
 
-### M1/Core
+### M1/Demographic
 
 ```{r}
 
-cpg_pvalues <- core_rural$P.Value
-names(cpg_pvalues) <- core_rural$CpG
+cpg_pvalues <- demographic_rural$P.Value
+names(cpg_pvalues) <- demographic_rural$CpG
 gsa_result1 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- core_schlyrs$P.Value
-names(cpg_pvalues) <- core_schlyrs$CpG
+cpg_pvalues <- demographic_schlyrs$P.Value
+names(cpg_pvalues) <- demographic_schlyrs$CpG
 gsa_result2 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- core_livegpar$P.Value
-names(cpg_pvalues) <- core_livegpar$CpG
+cpg_pvalues <- demographic_livegpar$P.Value
+names(cpg_pvalues) <- demographic_livegpar$CpG
 gsa_result3 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
 
-cpg_pvalues <- core_chsmk$P.Value
-names(cpg_pvalues) <- core_chsmk$CpG
+cpg_pvalues <- demographic_chsmk$P.Value
+names(cpg_pvalues) <- demographic_chsmk$CpG
 gsa_result4 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
                                array.type = "EPIC",
                                method = "GSEA")
@@ -141,7 +141,7 @@ gsa_result4 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
 
 ```
 
-### M2/Health Only
+### M2/Health 
 
 ```{r}
 cpg_pvalues <- h_rural$P.Value
@@ -170,7 +170,7 @@ gsa_result8 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
 
 ```
 
-### M3/Health, SES, Behavior
+### M3/Socioeconomic and Behavior
 
 ```{r}
 
@@ -204,7 +204,7 @@ gsa_result12 <- methylGSA::methylRRA(cpg.pval = cpg_pvalues,
 
 ```{r}
 
-sheets_methylGSA = list('childrural(Core)' = gsa_result1, 'childrural(Health Only)' = gsa_result5, 'childrural(Health+SES+Behavior)' = gsa_result9, 'SCHLYRS(Core)' = gsa_result2, 'SCHLYRS(Health Only)' = gsa_result6, 'SCHLYRS(Health+SES+Behavior)' = gsa_result10, 'LIVEGPAR(Core)' = gsa_result3, 'LIVEGPAR(Health Only)' = gsa_result7, 'LIVEGPAR(Health+SES+Behavior)' = gsa_result11, 'CHSMOKE(Core)' = gsa_result4, 'CHSMOKE(Health Only)' = gsa_result8, 'CHSMOKE(Health+SES+Behavior)' = gsa_result12)
+sheets_methylGSA = list('childrural(Demographic)' = gsa_result1, 'childrural(Health)' = gsa_result5, 'childrural(SES+Behavior)' = gsa_result9, 'SCHLYRS(Demographic)' = gsa_result2, 'SCHLYRS(Health)' = gsa_result6, 'SCHLYRS(SES+Behavior)' = gsa_result10, 'LIVEGPAR(Demographic)' = gsa_result3, 'LIVEGPAR(Health)' = gsa_result7, 'LIVEGPAR(SES+Behavior)' = gsa_result11, 'CHSMOKE(Demographic)' = gsa_result4, 'CHSMOKE(Health)' = gsa_result8, 'CHSMOKE(SES+Behavior)' = gsa_result12)
 writexl::write_xlsx(sheets_methylGSA, 'Manuscript/EWAS/Supplemental Table 10-Gene Ontology Pathway Enrichment Results.xlsx')
 
 ```

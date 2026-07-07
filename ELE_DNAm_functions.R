@@ -51,7 +51,26 @@ models_summarize <- function(func_var_combinations, models_list) {
       extract_summary(labeled_models_list[[model_name]]$model, model_name)
     })
   )
-  tidy_summaries_df
+  #VIF
+  vif_df <- bind_rows(lapply(names(labeled_models_list), function(model_name) {
+    model <- labeled_models_list[[model_name]]$model
+    vif_values <- tryCatch(vif(model),
+                           error = function(e) NULL)
+    if(is.null(vif_values)) {
+      data.frame(model_name = model_name,
+                 term = NA,
+                 VIF = NA)
+    } else if (is.matrix(vif_values)) {
+      as.data.frame(vif_values) %>% rownames_to_column("term") %>%
+        mutate(model_name = model_name, GVIF_adj = GVIF^(1/(2*Df))
+               )
+    } else {data.frame(model_name = model_name, term = names(vif_values),
+                       VIF = as.numeric(vif_values))}
+  }))
+return(list(
+  model_summaries = tidy_summaries_df,
+  vif = vif_df
+))
 }
 #apply creates a unique name for each model summary we get from df unadjusted_m1 using the two columns of the func_var_combinations df putting "vs" to separate each name
 #lapply iterates over each item in the list unadjusted_m1 and stores the below statistics in a new list
@@ -66,6 +85,14 @@ extract_summary <- function(model, model_name) {
   tidy_model <- cbind(tidy_model, conf_intervals)
   tidy_model$FDR_p.value <- p.adjust(tidy_model$p.value, method = "fdr")
   tidy_model$model_name <- model_name
+  #R-squared
+  r2 <- 1 - model$deviance / model$null.deviance
+  #Adj R-squared
+  n <- nobs(model)
+  p <- length(coef(model)) - 1
+  adjr2 <- 1 - ((1 - r2) * (n-1)/(n-p-1))
+  tidy_model$r2 <- r2
+  tidy_model$adjr2 <- adjr2
   return(tidy_model)
 }
 

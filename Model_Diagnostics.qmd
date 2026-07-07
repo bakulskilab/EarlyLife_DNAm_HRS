@@ -17,7 +17,7 @@ execute:
 
 ```{r, results='hide', message=FALSE}
 
-library(car)
+library(car) 
 library(tidyverse)
 library(tidymodels)
 library(ggplot2)
@@ -35,96 +35,92 @@ source('ELE_DNAm_functions.R')
 
 ## LOAD MODEL RESULTS
 
-\## UNADJUSTED
+### UNADJUSTED
 
 ```{r, results='hide', message=FALSE}
 
-unadj_m3AA_summaries_df <- readRDS("Model_Diagnostics/unadjusted_primaryexposures20261501.RDS")
-unadj_m3GM_summaries_df <- readRDS("Model_Diagnostics/unadjusted_primaryexposuresGM20261501.RDS")
+unadj_m3AA_summaries_df <- readRDS("Model_Diagnostics/unadjusted_primaryexposures20260607.RDS")
+unadj_m3GM_summaries_df <- readRDS("Model_Diagnostics/unadjusted_primaryexposuresGM20260607.RDS")
 
 ```
 
-\## HEALTH ONLY
+### DEMOGRAPHIC 
 
 ```{r}
 
-adj_HealthAA_summaries_dfm1 <- readRDS("Model_Diagnostics/adjusted_m1healthonly20261501.RDS")
-adj_HealthGM_summaries_dfm1 <- readRDS("Model_Diagnostics/adjusted_gm1healthonly20261501.RDS")
+adj_demoAA_summaries_dfm1 <- readRDS("Model_Diagnostics/adjusted_AAdemographic20262003.RDS")
+adj_demohGM_summaries_dfm1 <- readRDS("Model_Diagnostics/adjusted_GMdemographic20262003.RDS")
 
 ```
 
-\## HEALTH AND ADULT EXPOSURE
+### HEALTH 
 
 ```{r}
 
-adj_HealthAdultAArural_summaries_dfm2 <- readRDS("Model_Diagnostics/adjusted_m2rural20261501.RDS")
-adj_HealthAdultAAschlyrs_summaries_dfm2 <- readRDS("Model_Diagnostics/adjusted_m2schlyrs20261501.RDS")
-adj_HealthAdultAAlivegpar_summaries_dfm2 <- readRDS("Model_Diagnostics/adjusted_m2livegpar20261501.RDS")
-adj_HealthAdultAAchsmk_summaries_dfm2 <- readRDS("Model_Diagnostics/adjusted_m2chsmk20261501.RDS")
-adj_HealthAdultGMrural_summaries_dfm2 <- readRDS("Model_Diagnostics/adjusted_gm2rural20261501.RDS")
-adj_HealthAdultGMschlyrs_summaries_dfm2 <- readRDS("Model_Diagnostics/adjusted_gm2schlyrs20261501.RDS")
-adj_HealthAdultGMlivegpar_summaries_dfm2 <- readRDS("Model_Diagnostics/adjusted_gm2livegpar20261501.RDS")
-adj_HealthAdultGMchsmk_summaries_dfm2 <- readRDS("Model_Diagnostics/adjusted_gm2chsmk20261501.RDS")
+adj_HealthAA_summaries_dfm2 <- readRDS("Model_Diagnostics/adjusted_m1health20262003.RDS")
+adj_HealthGM_summaries_dfm2 <- readRDS("Model_Diagnostics/adjusted_gm1health20262003.RDS")
 
 ```
 
-\## Primary
+### SOCIOECONOMIC AND BEHAVIOR
 
 ```{r}
 
-adj_AArural_summaries_dfm3 <- readRDS("Model_Diagnostics/adjusted_m3rural20261501.RDS")
-adj_GMrural_summaries_dfm3 <- readRDS("Model_Diagnostics/adjusted_gm3rural20261501.RDS")
-adj_AAschlyrs_summaries_dfm3 <- readRDS("Model_Diagnostics/adjusted_m3schlyrs20261501.RDS")
-adj_GMschlyrs_summaries_dfm3 <-readRDS("Model_Diagnostics/adjusted_gm3schlyrs20261501.RDS")
-adj_AAlivegpar_summaries_dfm3 <-readRDS("Model_Diagnostics/adjusted_m3livegpar20261501.RDS")
-adj_GMlivegpar_summaries_dfm3 <-readRDS("Model_Diagnostics/adjusted_gm3livegpar20261501.RDS")
-adj_AAchsmk_summaries_dfm3 <- readRDS("Model_Diagnostics/adjusted_m3chsmk20261501.RDS")
-adj_GMchsmk_summaries_dfm3 <- readRDS("Model_Diagnostics/adjusted_gm3chsmk20261501.RDS")
+adj_AArural_summaries_dfm3 <- readRDS("Model_Diagnostics/adjusted_m3rural20260607.RDS")
+adj_GMrural_summaries_dfm3 <- readRDS("Model_Diagnostics/adjusted_gm3rural20260607.RDS")
+
+adj_AAschlyrs_summaries_dfm3 <- readRDS("Model_Diagnostics/adjusted_m3schlyrs20260607.RDS")
+adj_GMschlyrs_summaries_dfm3 <-readRDS("Model_Diagnostics/adjusted_gm3schlyrs20260607.RDS")
+
+adj_AAlivegpar_summaries_dfm3 <-readRDS("Model_Diagnostics/adjusted_m3livegpar20260607.RDS")
+adj_GMlivegpar_summaries_dfm3 <-readRDS("Model_Diagnostics/adjusted_gm3livegpar20260607.RDS")
+
+adj_AAchsmk_summaries_dfm3 <- readRDS("Model_Diagnostics/adjusted_m3chsmk20260607.RDS")
+adj_GMchsmk_summaries_dfm3 <- readRDS("Model_Diagnostics/adjusted_gm3chsmk20260607.RDS")
 
 ```
 
 # GET DIAGNOSTIC PLOTS
 
-\## UNADJUSTED
+### UNADJUSTED
 
-```{r}
+```{r, warning=FALSE}
 
 combined_plot1 <- perform_diagnostics(unadj_m3AA_summaries_df[[1]]$model, names(unadj_m3AA_summaries_df)[1]) #age acceleration
 combined_plot2 <- perform_diagnostics(unadj_m3GM_summaries_df[[1]]$model, names(unadj_m3GM_summaries_df)[1]) #global methylation
 
-```
-
-\## HEALTH ONLY
-
-```{r}
-
-combined_plotm1 <- perform_diagnostics(adj_HealthAA_summaries_dfm1[[1]]$model, names(adj_HealthAA_summaries_dfm1)[1]) #age acceleration
-combined_plotm1GM <- perform_diagnostics(adj_HealthGM_summaries_dfm1[[1]]$model, names(adj_HealthGM_summaries_dfm1)[1]) #global methylation
+combined_plot1
+combined_plot2
 
 ```
 
-\## HEALTH AND ADULT EXPOSURE
+### DEMOGRAPHIC
 
-```{r}
+```{r, warning=FALSE}
 
-  ## Grew up in a rural area
-combined_plot5 <- perform_diagnostics(adj_HealthAdultAArural_summaries_dfm2[[1]]$model, names(adj_HealthAdultAArural_summaries_dfm2)[1]) #age acceleration
-combined_plot6 <- perform_diagnostics(adj_HealthAdultGMrural_summaries_dfm2[[1]]$model, names(adj_HealthAdultGMrural_summaries_dfm2)[1]) #global methylation
-  ## Years in school
-combined_plot7 <- perform_diagnostics(adj_HealthAdultAAschlyrs_summaries_dfm2[[1]]$model, names(adj_HealthAdultAAschlyrs_summaries_dfm2)[1])
-combined_plot8 <- perform_diagnostics(adj_HealthAdultGMschlyrs_summaries_dfm2[[1]]$model, names(adj_HealthAdultGMschlyrs_summaries_dfm2)[1])
-  ## Live with a grandparent
-combined_plot9 <- perform_diagnostics(adj_HealthAdultAAlivegpar_summaries_dfm2[[1]]$model, names(adj_HealthAdultAAlivegpar_summaries_dfm2)[1])
-combined_plot10 <- perform_diagnostics(adj_HealthAdultGMlivegpar_summaries_dfm2[[1]]$model, names(adj_HealthAdultGMlivegpar_summaries_dfm2)[1])
-  ## Smoking during childhood
-combined_plot11 <- perform_diagnostics(adj_HealthAdultAAchsmk_summaries_dfm2[[1]]$model, names(adj_HealthAdultAAchsmk_summaries_dfm2)[1])
-combined_plot12 <- perform_diagnostics(adj_HealthAdultGMchsmk_summaries_dfm2[[1]]$model, names(adj_HealthAdultGMchsmk_summaries_dfm2)[1])
+combined_plotdemoAA <- perform_diagnostics(adj_demoAA_summaries_dfm1[[1]]$model, names(adj_demoAA_summaries_dfm1)[1]) #age acceleration
+combined_plotdemoGM <- perform_diagnostics(adj_demohGM_summaries_dfm1[[1]]$model, names(adj_demohGM_summaries_dfm1)[1]) #global methylation
+
+combined_plotdemoAA
+combined_plotdemoGM
 
 ```
 
-\## Primary
+### HEALTH 
 
-```{r}
+```{r, warning=FALSE}
+
+combined_plotm1 <- perform_diagnostics(adj_HealthAA_summaries_dfm2[[1]]$model, names(adj_HealthAA_summaries_dfm2)[1]) #age acceleration
+combined_plotm1GM <- perform_diagnostics(adj_HealthGM_summaries_dfm2[[1]]$model, names(adj_HealthGM_summaries_dfm2)[1]) #global methylation
+
+combined_plotm1
+combined_plotm1GM
+
+```
+
+### SOCIOECONOMIC AND BEHAVIOR
+
+```{r, warning=FALSE}
 
   ## Grew up in a rural area
 combined_plot1 <- perform_diagnostics(adj_AArural_summaries_dfm3[[1]]$model, names(adj_AArural_summaries_dfm3)[1]) #age acceleration
@@ -139,4 +135,15 @@ combined_plot6 <- perform_diagnostics(adj_GMlivegpar_summaries_dfm3[[1]]$model, 
 combined_plot7 <- perform_diagnostics(adj_AAchsmk_summaries_dfm3[[1]]$model, names(adj_AAchsmk_summaries_dfm3)[1])
 combined_plot8 <- perform_diagnostics(adj_GMchsmk_summaries_dfm3[[1]]$model, names(adj_GMchsmk_summaries_dfm3)[1])
 
+combined_plot1
+combined_plot2
+
+combined_plot3
+combined_plot4
+
+combined_plot5
+combined_plot6
+
+combined_plot7
+combined_plot8
 ```

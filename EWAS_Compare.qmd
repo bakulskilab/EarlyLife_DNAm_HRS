@@ -28,28 +28,28 @@ library(UpSetR)
 ```{r, warning=FALSE}
 
 #Rename model result dfs * convert estimates to percents for reporting
-#M1: Core
-load("NewData/EWAS/resultsm1_childrural_core.rda")
-core_rural <- results_rural_cannotated
+#M1: Demographic
+load("NewData/EWAS/resultsm1_childrural_demographic.rda")
+demographic_rural <- results_rural_cannotated
 rm(results_rural_cannotated)
-core_rural <- core_rural %>% mutate(logFCpercent = logFC * 100)
+demographic_rural <- demographic_rural %>% mutate(logFCpercent = logFC * 100)
 
-load("NewData/EWAS/resultsm1_schlyrs_core.rda")
-core_schlyrs <- results_schlyrs_cannotated
+load("NewData/EWAS/resultsm1_schlyrs_demographic.rda")
+demographic_schlyrs <- results_schlyrs_cannotated
 rm(results_schlyrs_cannotated)
-core_schlyrs <- core_schlyrs %>% mutate(logFCpercent = logFC * 100)
+demographic_schlyrs <- demographic_schlyrs %>% mutate(logFCpercent = logFC * 100)
 
-load("NewData/EWAS/resultsm1_livegpar_core.rda")
-core_livegpar <- results_livegpar_cannotated
+load("NewData/EWAS/resultsm1_livegpar_demographic.rda")
+demographic_livegpar <- results_livegpar_cannotated
 rm(results_livegpar_cannotated)
-core_livegpar <- core_livegpar %>% mutate(logFCpercent = logFC * 100)
+demographic_livegpar <- demographic_livegpar %>% mutate(logFCpercent = logFC * 100)
 
-load("NewData/EWAS/resultsm1_chsmk_core.rda")
-core_chsmk <- results_chsmk_cannotated
+load("NewData/EWAS/resultsm1_chsmk_demographic.rda")
+demographic_chsmk <- results_chsmk_cannotated
 rm(results_chsmk_cannotated)
-core_chsmk <- core_chsmk %>% mutate(logFCpercent = logFC * 100)
+demographic_chsmk <- demographic_chsmk %>% mutate(logFCpercent = logFC * 100)
 
-#M2: Health Only
+#M2: Health
 load("NewData/EWAS/resultsm1_childrural_hm.rda")
 h_rural <- results_rural_hannotated
 rm(results_rural_hannotated)
@@ -70,7 +70,7 @@ h_chsmk <- results_chsmk_hannotated
 rm(results_chsmk_hannotated)
 h_chsmk <- h_chsmk %>% mutate(logFCpercent = logFC * 100)
 
-#M3: Health, socioeconomic, and behavior Variables
+#M3: Socioeconomic and behavior Variables
 load("NewData/EWAS/resultsm3_rural_ds8.rda")
 rural_smk_8 <- results_rural_ds8annotated
 rm(results_rural_ds8annotated)
@@ -92,7 +92,7 @@ rm(results_chsmk_dsannotated)
 chsmk_m3 <- chsmk_ds %>% mutate(logFCpercent = logFC * 100)
 
 
-#Mutually Adjusted Exposure Models
+#Mixtures Models
 load("NewData/EWAS/resultsm3_allexposures_2026May07.rda")
 all_exposures <- results_allexpannotated
 rm(results_allexpannotated)
@@ -116,12 +116,12 @@ formersmk_ewas <-  readxl::read_xlsx("Datasets/PMC5267325_meta-ewas_formercigare
 
 
 ## UPSET PLOTS (P<0.0001) 
-### HEALTH SES BEHAVIOR MODEL (Supplemental Figure 5)
-```{r}
+### SOCIOECONOMIC AND BEHAVIOR MODEL (Supplemental Figure 6)
+```{r, warning=FALSE, message=FALSE}
 
-### Health, Socioeconomic Status, and Behavior EWAS 
+### Socioeconomic Status and Behavior EWAS 
 ### P<0.0001 level
-png(here("Manuscript/upsetplot_healthSESbehav_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
+png(here("Manuscript/upsetplot_SESbehav_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
 
 upset(fromList(
   list("Grew up in a rural area" = rural_m3$CpG[rural_m3$P.Value < 0.0001],
@@ -134,46 +134,9 @@ dev.off()
 
 ```
 
-### PRIOR EWAS (Maternal Educational Attainment) (Supplemental Figure 6)
-```{r}
-png(here("Manuscript/upsetplot_priormaternalea_schlyrs_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
-
-upset(fromList(
-  list("Maternal \n educational attainment \n PMID: 38052982" = maternal_educ_ewas$CpG[maternal_educ_ewas$P.Value < 0.0001],
-        "Years in school" = schlyrs_m3$CpG[schlyrs_m3$P.Value < 0.0001])
-    ), nsets=4)
-
-dev.off()
-```
-
-### PRIOR EWAS (Former Smoking) (Supplemental Figure 6)
-```{r}
-png(here("Manuscript/upsetplot_priorformersmk_chsmk_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
-
-upset(fromList(
-  list("Former smoking \n PMID: 27651444" = formersmk_ewas$CpG[formersmk_ewas$P.Value < 0.0001],
-        "Smoking during childhood" = chsmk_m3$CpG[chsmk_m3$P.Value < 0.0001])
-    ), nsets=4)
-
-dev.off()
-```
-
-### PRIOR EWAS (Current Smoking) (Supplemental Figure 6)
-```{r}
-png(here("Manuscript/upsetplot_priorcurrentsmk_chsmk_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
-
-upset(fromList(
-  list("Current smoking \n PMID: 27651444" = currentsmk_ewas$CpG[currentsmk_ewas$P.Value < 0.0001],
-        "Smoking during childhood" = chsmk_m3$CpG[chsmk_m3$P.Value < 0.0001])
-    ), nsets=4)
-
-dev.off()
-
-```
-
-### MUTUALLY ADJUSTED EXPOSURES (Supplemental Figure 7)
-```{r}
-png(here("Manuscript/upsetplot_mutually-adjusted-exposures_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
+### MIXTURES EXPOSURES (Supplemental Figure 7)
+```{r, warning=FALSE, message=FALSE}
+png(here("Manuscript/upsetplot_mixture-exposures_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
 
 listp <- all_exposures %>% dplyr::filter(P.Value < 0.0001) %>% 
                               dplyr::group_by(exposure) %>% 
@@ -190,10 +153,47 @@ UpSetR::upset(fromList(listp),
 dev.off()
 ```
 
+### PRIOR EWAS (Maternal Educational Attainment) (Supplemental Figure 8)
+```{r, warning=FALSE, message=FALSE}
+png(here("Manuscript/upsetplot_priormaternalea_schlyrs_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
 
-## SCATTER PLOTS (Supplemental Figure 8)
+upset(fromList(
+  list("Maternal \n educational attainment \n PMID: 38052982" = maternal_educ_ewas$CpG[maternal_educ_ewas$P.Value < 0.0001],
+        "Years in school" = schlyrs_m3$CpG[schlyrs_m3$P.Value < 0.0001])
+    ), nsets=4)
 
-### COMPARE MODEL COEFFICENTS BETWEEN EXPOSURES (M3/Primary)
+dev.off()
+```
+
+### PRIOR EWAS (Former Smoking) (Supplemental Figure 8)
+```{r, warning=FALSE}
+png(here("Manuscript/upsetplot_priorformersmk_chsmk_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
+
+upset(fromList(
+  list("Former smoking \n PMID: 27651444" = formersmk_ewas$CpG[formersmk_ewas$P.Value < 0.0001],
+        "Smoking during childhood" = chsmk_m3$CpG[chsmk_m3$P.Value < 0.0001])
+    ), nsets=4)
+
+dev.off()
+```
+
+### PRIOR EWAS (Current Smoking) (Supplemental Figure 8)
+```{r, warning=FALSE}
+png(here("Manuscript/upsetplot_priorcurrentsmk_chsmk_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
+
+upset(fromList(
+  list("Current smoking \n PMID: 27651444" = currentsmk_ewas$CpG[currentsmk_ewas$P.Value < 0.0001],
+        "Smoking during childhood" = chsmk_m3$CpG[chsmk_m3$P.Value < 0.0001])
+    ), nsets=4)
+
+dev.off()
+
+```
+
+
+## SCATTER PLOTS (Supplemental Figure 9)
+
+### COMPARE MODEL COEFFICENTS BETWEEN EXPOSURES (M3/Socioeconomic and behavior)
 
 ```{r, warning=FALSE}
 
@@ -274,7 +274,7 @@ dev.off()
 
 ```
 
-# COMPARE WITH PRIOR LITERATURE (Supplemental Figure 9)
+# COMPARE WITH PRIOR LITERATURE (Supplemental Figure 10)
 
 ```{r, warning=FALSE}
 
@@ -321,10 +321,10 @@ dev.off()
 
 ## COMPARE SITES WITHIN OUR STUDY
 
-```{r}
+```{r, warning=FALSE}
 
 #CHILD RURAL OVERLAP
-overlap_rural <- Reduce(intersect, list(rural_m3$CpG, core_rural$CpG, h_rural$CpG))
+overlap_rural <- Reduce(intersect, list(rural_m3$CpG, demographic_rural$CpG, h_rural$CpG))
 
 overlap_rural <- data.frame(
   CpG = overlap_rural,
@@ -333,8 +333,8 @@ overlap_rural <- data.frame(
   gene = rural_m3 %>% filter(CpG %in% overlap_rural) %>% pull(UCSC_RefGene_Name),
   rural_m3.estimate = rural_m3 %>% filter(CpG %in% overlap_rural) %>% pull(logFC),
   rural_m3.pval = rural_m3 %>% filter(CpG %in% overlap_rural) %>% pull(P.Value),
-  core_rural.estimate = core_rural %>% filter(CpG %in% overlap_rural) %>% pull(logFC),
-  core_rural.pval = core_rural %>% filter(CpG %in% overlap_rural) %>% pull(P.Value),
+  demographic_rural.estimate = demographic_rural %>% filter(CpG %in% overlap_rural) %>% pull(logFC),
+  demographic_rural.pval = demographic_rural %>% filter(CpG %in% overlap_rural) %>% pull(P.Value),
   h_rural.estimate = h_rural %>% filter(CpG %in% overlap_rural) %>% pull(logFC),
   h_rural.pval = h_rural %>% filter(CpG %in% overlap_rural) %>% pull(P.Value)
 )
@@ -344,7 +344,7 @@ write_xlsx(overlap_rural, "Manuscript/Compare_Models/ALL Child Rural Models CpG 
 
 
 #SCHLYRS OVERLAP
-overlap_schlyrs <- Reduce(intersect, list(schlyrs_m3$CpG, core_schlyrs$CpG, h_schlyrs$CpG))
+overlap_schlyrs <- Reduce(intersect, list(schlyrs_m3$CpG, demographic_schlyrs$CpG, h_schlyrs$CpG))
 
 overlap_schlyrs <- data.frame(
   CpG = overlap_schlyrs,
@@ -353,8 +353,8 @@ overlap_schlyrs <- data.frame(
   gene = schlyrs_m3 %>% filter(CpG %in% overlap_schlyrs) %>% pull(UCSC_RefGene_Name),
   schlyrs_m3.estimate = schlyrs_m3 %>% filter(CpG %in% overlap_schlyrs) %>% pull(logFC),
   schlyrs_m3.pval = schlyrs_m3 %>% filter(CpG %in% overlap_schlyrs) %>% pull(P.Value),
-  core_schlyrs.estimate = core_schlyrs %>% filter(CpG %in% overlap_schlyrs) %>% pull(logFC),
-  core_schlyrs.pval = core_schlyrs %>% filter(CpG %in% overlap_schlyrs) %>% pull(P.Value),
+  demographic_schlyrs.estimate = demographic_schlyrs %>% filter(CpG %in% overlap_schlyrs) %>% pull(logFC),
+  demographic_schlyrs.pval = demographic_schlyrs %>% filter(CpG %in% overlap_schlyrs) %>% pull(P.Value),
   h_schlyrs.estimate = h_schlyrs %>% filter(CpG %in% overlap_schlyrs) %>% pull(logFC),
   h_schlyrs.pval = h_schlyrs %>% filter(CpG %in% overlap_schlyrs) %>% pull(P.Value)
 )
@@ -365,7 +365,7 @@ write_xlsx(overlap_schlyrs, "Manuscript/Compare_Models/ALL SCHLYRS Models CpG Ov
 
 
 #LIVEGPAR OVERLAP
-overlap_livegpar <- Reduce(intersect, list(livegpar_m3$CpG, core_livegpar$CpG, h_livegpar$CpG))
+overlap_livegpar <- Reduce(intersect, list(livegpar_m3$CpG, demographic_livegpar$CpG, h_livegpar$CpG))
 
 overlap_livegpar <- data.frame(
   CpG = overlap_livegpar,
@@ -374,8 +374,8 @@ overlap_livegpar <- data.frame(
   gene = livegpar_m3 %>% filter(CpG %in% overlap_livegpar) %>% pull(UCSC_RefGene_Name),
   livegpar_m3.estimate = livegpar_m3 %>% filter(CpG %in% overlap_livegpar) %>% pull(logFC),
   livegpar_m3.pval = livegpar_m3 %>% filter(CpG %in% overlap_livegpar) %>% pull(P.Value),
-  core_livegpar.estimate = core_livegpar %>% filter(CpG %in% overlap_livegpar) %>% pull(logFC),
-  core_livegpar.pval = core_livegpar %>% filter(CpG %in% overlap_livegpar) %>% pull(P.Value),
+  demographic_livegpar.estimate = demographic_livegpar %>% filter(CpG %in% overlap_livegpar) %>% pull(logFC),
+  demographic_livegpar.pval = demographic_livegpar %>% filter(CpG %in% overlap_livegpar) %>% pull(P.Value),
   h_livegpar.estimate = h_livegpar %>% filter(CpG %in% overlap_livegpar) %>% pull(logFC),
   h_livegpar.pval = h_livegpar %>% filter(CpG %in% overlap_livegpar) %>% pull(P.Value)
 )
@@ -385,7 +385,7 @@ write_xlsx(overlap_livegpar, "Manuscript/Compare_Models/ALL LIVEGPAR Models CpG 
 
 
 #CHILD SMOKING OVERLAP
-overlap_chsmk <- Reduce(intersect, list(chsmk_m3$CpG, core_chsmk$CpG, h_chsmk$CpG))
+overlap_chsmk <- Reduce(intersect, list(chsmk_m3$CpG, demographic_chsmk$CpG, h_chsmk$CpG))
 
 overlap_chsmk <- data.frame(
   CpG = overlap_chsmk,
@@ -394,8 +394,8 @@ overlap_chsmk <- data.frame(
   gene = chsmk_m3 %>% filter(CpG %in% overlap_chsmk) %>% pull(UCSC_RefGene_Name),
   chsmk_m3.estimate = chsmk_m3 %>% filter(CpG %in% overlap_chsmk) %>% pull(logFC),
   chsmk_m3.pval = chsmk_m3 %>% filter(CpG %in% overlap_chsmk) %>% pull(P.Value),
-  core_chsmk.estimate = core_chsmk %>% filter(CpG %in% overlap_chsmk) %>% pull(logFC),
-  core_chsmk.pval = core_chsmk %>% filter(CpG %in% overlap_chsmk) %>% pull(P.Value),
+  demographic_chsmk.estimate = demographic_chsmk %>% filter(CpG %in% overlap_chsmk) %>% pull(logFC),
+  demographic_chsmk.pval = demographic_chsmk %>% filter(CpG %in% overlap_chsmk) %>% pull(P.Value),
   h_chsmk.estimate = h_chsmk %>% filter(CpG %in% overlap_chsmk) %>% pull(logFC),
   h_chsmk.pval = h_chsmk %>% filter(CpG %in% overlap_chsmk) %>% pull(P.Value)
 )
@@ -409,7 +409,7 @@ write_xlsx(overlap_chsmk, "Manuscript/Compare_Models/ALL CHILD SMK Models CpG Ov
 
 ### Years in School
 
-```{r}
+```{r, warning=FALSE}
 #SCHLYRS OVERLAP
 overlap_schlyrs_maternalea <- Reduce(intersect, list(maternal_educ_ewas$CpG, schlyrs_m3$CpG))
 overlap_schlyrs2 <- data.frame(
@@ -434,7 +434,7 @@ writexl::write_xlsx(sheets, 'Manuscript/Compare_Models/M3 Years in School Overla
 
 ###Child Smoking
 
-```{r}
+```{r, warning=FALSE}
 #CHILD SMOKING OVERLAP
 overlap_chsmk_currentsmk <- Reduce(intersect, list(currentsmk_ewas$CpG, chsmk_m3$CpG))
 overlap_chsmk3 <- data.frame(

@@ -32,15 +32,15 @@ library(cowplot)
 
 ```{r, results='hide', message=FALSE}
 
-## Fully Adjusted Results
-adjusted_mrural_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/ChildRural_M3_AA_Summary20262003.xlsx")
-adjusted_gmrural_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/ChildRural_M3_GM_Summary20262003.xlsx")
-adjusted_mschlyrs_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/SCHLYRS_M3_AA_Summary20262003.xlsx")
-adjusted_gmschlyrs_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/SCHLYRS_M3_GM_Summary20262003.xlsx")
-adjusted_mlivegpar_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/LIVEGPAR_M3_AA_Summary20262003.xlsx")
-adjusted_gmlivegpar_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/LIVEGPAR_M3_GM_Summary20262003.xlsx")
-adjusted_mchsmk_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/CHSMK_M3_AA_Summary20262003.xlsx")
-adjusted_gmchsmk_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/CHSMK_M3_GM_Summary20262003.xlsx")
+## SES+Behavior Results
+adjusted_mrural_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/ChildRural_M3_AA_Summary20260607.xlsx")
+adjusted_gmrural_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/ChildRural_M3_GM_Summary20260607.xlsx")
+adjusted_mschlyrs_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/SCHLYRS_M3_AA_Summary20260607.xlsx")
+adjusted_gmschlyrs_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/SCHLYRS_M3_GM_Summary20260607.xlsx")
+adjusted_mlivegpar_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/LIVEGPAR_M3_AA_Summary20260607.xlsx")
+adjusted_gmlivegpar_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/LIVEGPAR_M3_GM_Summary20260607.xlsx")
+adjusted_mchsmk_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/CHSMK_M3_AA_Summary20260607.xlsx")
+adjusted_gmchsmk_summaries_df <- readxl::read_xlsx("Output/FullyAdjusted/CHSMK_M3_GM_Summary20260607.xlsx")
 
 ```
 
@@ -52,7 +52,7 @@ source('ELE_DNAm_functions.R')
 
 ```
 
-## FOREST PLOTS: PRIMARY LINEAR REGRESSION RESULTS (Supplemental Figures 3
+## FOREST PLOTS: PRIMARY LINEAR REGRESSION RESULTS (Supplemental Figures 4)
 
 ```{r, warning=FALSE}
 
@@ -101,10 +101,10 @@ filtered_df_adjusted_schlyrsGM$exposure <- factor(filtered_df_adjusted_schlyrsGM
 filtered_df_adjusted_livegparGM$exposure <- factor(filtered_df_adjusted_livegparGM$exposure, levels = c("CHSMOKE_R", "LIVEGPAR_R", "SCHLYRS_rev", "childrural_democoggen"), labels = c("Smoking during childhood", "Live with a grandparent", "Years in school", "Grew up in a rural area"))
 filtered_df_adjusted_chsmkGM$exposure <- factor(filtered_df_adjusted_chsmkGM$exposure, levels = c("CHSMOKE_R", "LIVEGPAR_R", "SCHLYRS_rev", "childrural_democoggen"), labels = c("Smoking during childhood", "Live with a grandparent", "Years in school", "Grew up in a rural area"))
 
-filtered_df_adjusted_ruralGM$outcome <- factor(filtered_df_adjusted_ruralGM$outcome, levels = c("OpenSea_mean", "Shore_mean", "Shelf_mean", "Island_mean", "globalmethylation"), labels = c("Open Sea methylation", "Shore methylation", "Shelf methylation", "Island methylation", "Global methylation"))
-filtered_df_adjusted_schlyrsGM$outcome <- factor(filtered_df_adjusted_schlyrsGM$outcome, levels = c("OpenSea_mean", "Shore_mean", "Shelf_mean", "Island_mean", "globalmethylation"), labels = c("Open Sea methylation", "Shore methylation", "Shelf methylation", "Island methylation", "Global methylation"))
-filtered_df_adjusted_livegparGM$outcome <- factor(filtered_df_adjusted_livegparGM$outcome, levels = c("OpenSea_mean", "Shore_mean", "Shelf_mean", "Island_mean", "globalmethylation"), labels = c("Open Sea methylation", "Shore methylation", "Shelf methylation", "Island methylation", "Global methylation"))
-filtered_df_adjusted_chsmkGM$outcome <- factor(filtered_df_adjusted_chsmkGM$outcome, levels = c("OpenSea_mean", "Shore_mean", "Shelf_mean", "Island_mean", "globalmethylation"), labels = c("Open Sea methylation", "Shore methylation", "Shelf methylation", "Island methylation", "Global methylation"))
+filtered_df_adjusted_ruralGM$outcome <- factor(filtered_df_adjusted_ruralGM$outcome, levels = c("Shore_mean", "Shelf_mean", "OpenSea_mean", "Island_mean", "globalmethylation"), labels = c("Shore methylation", "Shelf methylation", "Open Sea methylation", "Island methylation", "Global methylation"))
+filtered_df_adjusted_schlyrsGM$outcome <- factor(filtered_df_adjusted_schlyrsGM$outcome, levels = c("Shore_mean", "Shelf_mean", "OpenSea_mean", "Island_mean", "globalmethylation"), labels = c("Shore methylation", "Shelf methylation", "Open Sea methylation", "Island methylation", "Global methylation"))
+filtered_df_adjusted_livegparGM$outcome <- factor(filtered_df_adjusted_livegparGM$outcome, levels = c("Shore_mean", "Shelf_mean", "OpenSea_mean", "Island_mean", "globalmethylation"), labels = c("Shore methylation", "Shelf methylation", "Open Sea methylation", "Island methylation", "Global methylation"))
+filtered_df_adjusted_chsmkGM$outcome <- factor(filtered_df_adjusted_chsmkGM$outcome, levels = c("Shore_mean", "Shelf_mean", "OpenSea_mean", "Island_mean", "globalmethylation"), labels = c("Shore methylation", "Shelf methylation", "Open Sea methylation", "Island methylation", "Global methylation"))
 
 
 ## Create One Forest Plot with All Exposures
@@ -124,10 +124,10 @@ forest_plot_GM_ALLM3
 forest_plotcombined <- plot_grid(forest_plot_AA_ALLM3, forest_plot_GM_ALLM3, ncol = 2, align = "h", axis = "l")
 
 ## Export
-save_plot("Manuscript/2026Mar20_supplfig3_forest_plots_m3_AA.svg", plot = forest_plot_AA_ALLM3, base_width = 18, base_height = 12)
-save_plot("Manuscript/2026Mar20_supplfig4_forest_plots_m3_GM.svg", plot = forest_plot_GM_ALLM3, base_width = 20, base_height = 12)
+save_plot("Manuscript/2026July06_supplfig3_forest_plots_m3_AA.svg", plot = forest_plot_AA_ALLM3, base_width = 18, base_height = 12)
+save_plot("Manuscript/2026July06_supplfig4_forest_plots_m3_GM.svg", plot = forest_plot_GM_ALLM3, base_width = 20, base_height = 12)
 
-save_plot("Manuscript/2026Mar20_supplfig3_combinedforest_plots_m3_AAGM.svg", plot = forest_plotcombined, base_width = 35, base_height = 10)
+save_plot("Manuscript/2026July06_supplfig3_combinedforest_plots_m3_AAGM.svg", plot = forest_plotcombined, base_width = 35, base_height = 10)
 
 
 ```

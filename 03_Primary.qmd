@@ -1,5 +1,5 @@
 ---
-title: "Health, Behavior, and SES Linear Regression Models"
+title: "Socioeconomic and Behavior Linear Regression Models"
 author: "NK"
 date: "`r Sys.Date()`"
 format:
@@ -28,7 +28,7 @@ library(broom.helpers)
 ```{r, results='hide', message=FALSE}
 
 ## Load complete analytic dataset (HRS_DNAm_meta_Cell9_Includedsubset) from 01_DataManage_Exclusion.qmd file
-complete_subset <- readRDS("NewData/HRS_DNAm_meta_Cell9_Includedsubset20261703.RDS")
+complete_subset <- readRDS("NewData/HRS_DNAm_meta_Cell9_Includedsubset202617Jun.RDS")
 dim(complete_subset)
 
 ```
@@ -59,8 +59,8 @@ exposure_vars2 <- c("SCHLYRS_rev")
 exposure_vars3 <- c("LIVEGPAR_R")
 exposure_vars4 <- c("CHSMOKE_R")
 
-  ## Define model covariates for Primary models
-covars_primary <- c("age", "sex", "raceethnicity_collapsed", "BEALE_latest", "Parent_Educ", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "smoke_latest", "GR", "NK", "B", "CD8", "CD4", "Sample_Plate")  
+  ## Define model covariates for socioeconomic and behavior models
+covars_primary <- c("age", "sex", "raceethnicity_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "smoke_latest", "GR", "NK", "B", "CD8", "CD4", "Sample_Plate")  
 
 ```
 
@@ -77,14 +77,17 @@ var_combinations <- func_var_combinations(exposure_vars, outcome_vars)
 unadjusted_m1 <- run_linear_models(var_combinations, complete_subset)
 
 # Save as new dataframe
-saveRDS(unadjusted_m1, file = "Model_Diagnostics/unadjusted_primaryexposures20262003.RDS")
+saveRDS(unadjusted_m1, file = "Model_Diagnostics/unadjusted_primaryexposures20260607.RDS")
 
 ## Summarize models
 unadjusted_m1_summaries_df <- models_summarize(var_combinations, unadjusted_m1)
 
 ## Export the combined data frame to a CSV file
-writexl::write_xlsx(unadjusted_m1_summaries_df, "Output/Unadjusted_MODEL3AA_Summary20262003.xlsx")
+writexl::write_xlsx(unadjusted_m1_summaries_df, "Output/Unadjusted_MODEL3AA_Summary20260607.xlsx")
 
+#Separate model summaries and vif for export
+unadj_AA <- unadjusted_m1_summaries_df$model_summaries
+unadj_AA_vif <- unadjusted_m1_summaries_df$vif
 ```
 
 ### Global Methylation
@@ -98,17 +101,20 @@ var_combinations_gm <- func_var_combinations(exposure_vars, outcome_vars_gm)
 unadjusted_m2 <- run_linear_models(var_combinations_gm, complete_subset)
 
 # Save as new dataframe
-saveRDS(unadjusted_m2, file = "Model_Diagnostics/unadjusted_primaryexposuresGM20262003.RDS")
+saveRDS(unadjusted_m2, file = "Model_Diagnostics/unadjusted_primaryexposuresGM20260607.RDS")
 
 ## Summarize models
 unadjusted_m2_summaries_df <- models_summarize(var_combinations_gm, unadjusted_m2)
 
 ## Export the data frame 
-writexl::write_xlsx(unadjusted_m2_summaries_df, "Output/Unadjusted_GLOBALMODEL3_Summary20262003.xlsx")
+writexl::write_xlsx(unadjusted_m2_summaries_df, "Output/Unadjusted_GLOBALMODEL3_Summary20260607.xlsx")
 
+#Separate model summaries and vif for export
+unadj_GM <- unadjusted_m2_summaries_df$model_summaries
+unadj_GM_vif <- unadjusted_m2_summaries_df$vif
 ```
 
-## HEALTH, BEHAVIOR, and SES LINEAR REGRESSION
+## SOCIOECONOMIC AND BEHAVIOR LINEAR REGRESSION
 
 ### Age Acceleration
 
@@ -123,10 +129,14 @@ adjusted_mrural <- run_linear_models(var_combinations_mrural, data = complete_su
 adjusted_mrural_summaries_df <- models_summarize(var_combinations_mrural, adjusted_mrural)
 
 # Save as new dataframe
-saveRDS(adjusted_mrural, file = "Model_Diagnostics/adjusted_m3rural20262003.RDS")
+saveRDS(adjusted_mrural, file = "Model_Diagnostics/adjusted_m3rural20260607.RDS")
 
   ## Export the data frame 
-writexl::write_xlsx(adjusted_mrural_summaries_df, "Output/FullyAdjusted/ChildRural_M3_AA_Summary20262003.xlsx")
+writexl::write_xlsx(adjusted_mrural_summaries_df, "Output/FullyAdjusted/ChildRural_M3_AA_Summary20260607.xlsx")
+
+#Separate model summaries and vif for export
+adj_ruralm3_AA <- adjusted_mrural_summaries_df$model_summaries
+adj_ruralm3_AA_vif <- adjusted_mrural_summaries_df$vif
 
 
 
@@ -139,10 +149,15 @@ adjusted_mschlyrs <- run_linear_models(var_combinations_mschlyrs, data = complet
 adjusted_mschlyrs_summaries_df <- models_summarize(var_combinations_mschlyrs, adjusted_mschlyrs)
 
 # Save as new dataframe
-saveRDS(adjusted_mschlyrs, file = "Model_Diagnostics/adjusted_m3schlyrs20262003.RDS")
+saveRDS(adjusted_mschlyrs, file = "Model_Diagnostics/adjusted_m3schlyrs20260607.RDS")
 
   ## Export the data frame 
-writexl::write_xlsx(adjusted_mschlyrs_summaries_df, "Output/FullyAdjusted/SCHLYRS_M3_AA_Summary20262003.xlsx")
+writexl::write_xlsx(adjusted_mschlyrs_summaries_df, "Output/FullyAdjusted/SCHLYRS_M3_AA_Summary20260607.xlsx")
+
+#Separate model summaries and vif for export
+adj_schlyrsm3_AA <- adjusted_mschlyrs_summaries_df$model_summaries
+adj_schlyrsm3_AA_vif <- adjusted_mschlyrs_summaries_df$vif
+
 
 
 
@@ -155,10 +170,15 @@ adjusted_mlivegpar <- run_linear_models(var_combinations_mlivegpar, data = compl
 adjusted_mlivegpar_summaries_df <- models_summarize(var_combinations_mlivegpar, adjusted_mlivegpar)
 
 # Save as new dataframe
-saveRDS(adjusted_mlivegpar, file = "Model_Diagnostics/adjusted_m3livegpar20262003.RDS")
+saveRDS(adjusted_mlivegpar, file = "Model_Diagnostics/adjusted_m3livegpar20260607.RDS")
 
   ## Export the data frame 
-writexl::write_xlsx(adjusted_mlivegpar_summaries_df, "Output/FullyAdjusted/LIVEGPAR_M3_AA_Summary20262003.xlsx")
+writexl::write_xlsx(adjusted_mlivegpar_summaries_df, "Output/FullyAdjusted/LIVEGPAR_M3_AA_Summary20260607.xlsx")
+
+#Separate model summaries and vif for export
+adj_livegparm3_AA <- adjusted_mlivegpar_summaries_df$model_summaries
+adj_livegparsm3_AA_vif <- adjusted_mlivegpar_summaries_df$vif
+
 
 
 
@@ -171,11 +191,14 @@ adjusted_mchsmk <- run_linear_models(var_combinations_mchsmk, data = complete_su
 adjusted_mchsmk_summaries_df <- models_summarize(var_combinations_mchsmk, adjusted_mchsmk)
 
 # Save as new dataframe
-saveRDS(adjusted_mchsmk, file = "Model_Diagnostics/adjusted_m3chsmk20262003.RDS")
+saveRDS(adjusted_mchsmk, file = "Model_Diagnostics/adjusted_m3chsmk20260607.RDS")
 
   ## Export the data frame 
-writexl::write_xlsx(adjusted_mchsmk_summaries_df, "Output/FullyAdjusted/CHSMK_M3_AA_Summary20262003.xlsx")
+writexl::write_xlsx(adjusted_mchsmk_summaries_df, "Output/FullyAdjusted/CHSMK_M3_AA_Summary20260607.xlsx")
 
+#Separate model summaries and vif for export
+adj_chsmkm3_AA <- adjusted_mchsmk_summaries_df$model_summaries
+adj_chsmksm3_AA_vif <- adjusted_mchsmk_summaries_df$vif
 ```
 
 ### Global Methylation
@@ -191,10 +214,15 @@ adjusted_gmrural <- run_linear_models(var_combinations_gmrural, data = complete_
 adjusted_gmrural_summaries_df <- models_summarize(var_combinations_gmrural, adjusted_gmrural)
 
 # Save as new dataframe
-saveRDS(adjusted_gmrural, file = "Model_Diagnostics/adjusted_gm3rural20262003.RDS")
+saveRDS(adjusted_gmrural, file = "Model_Diagnostics/adjusted_gm3rural20260607.RDS")
 
   ## Export the data frame 
-writexl::write_xlsx(adjusted_gmrural_summaries_df, "Output/FullyAdjusted/ChildRural_M3_GM_Summary20262003.xlsx")
+writexl::write_xlsx(adjusted_gmrural_summaries_df, "Output/FullyAdjusted/ChildRural_M3_GM_Summary20260607.xlsx")
+
+#Separate model summaries and vif for export
+adj_ruralm3_GM <- adjusted_gmrural_summaries_df$model_summaries
+adj_ruralsm3_GM_vif <- adjusted_gmrural_summaries_df$vif
+
 
 
 
@@ -208,10 +236,15 @@ adjusted_gmschlyrs <- run_linear_models(var_combinations_gmschlyrs, data = compl
 adjusted_gmschlyrs_summaries_df <- models_summarize(var_combinations_gmschlyrs, adjusted_gmschlyrs)
 
 # Save as new dataframe
-saveRDS(adjusted_gmschlyrs, file = "Model_Diagnostics/adjusted_gm3schlyrs20262003.RDS")
+saveRDS(adjusted_gmschlyrs, file = "Model_Diagnostics/adjusted_gm3schlyrs20260607.RDS")
 
   ## Export the data frame 
-writexl::write_xlsx(adjusted_gmschlyrs_summaries_df, "Output/FullyAdjusted/SCHLYRS_M3_GM_Summary20262003.xlsx")
+writexl::write_xlsx(adjusted_gmschlyrs_summaries_df, "Output/FullyAdjusted/SCHLYRS_M3_GM_Summary20260607.xlsx")
+
+#Separate model summaries and vif for export
+adj_schlyrsm3_GM <- adjusted_gmschlyrs_summaries_df$model_summaries
+adj_schlyrsm3_GM_vif <- adjusted_gmschlyrs_summaries_df$vif
+
 
 
 
@@ -224,10 +257,15 @@ adjusted_gmlivegpar <- run_linear_models(var_combinations_gmlivegpar, data = com
 adjusted_gmlivegpar_summaries_df <- models_summarize(var_combinations_gmlivegpar, adjusted_gmlivegpar)
 
 # Save as new dataframe
-saveRDS(adjusted_gmlivegpar, file = "Model_Diagnostics/adjusted_gm3livegpar20262003.RDS")
+saveRDS(adjusted_gmlivegpar, file = "Model_Diagnostics/adjusted_gm3livegpar20260607.RDS")
 
   ## Export the data frame 
-writexl::write_xlsx(adjusted_gmlivegpar_summaries_df, "Output/FullyAdjusted/LIVEGPAR_M3_GM_Summary20262003.xlsx")
+writexl::write_xlsx(adjusted_gmlivegpar_summaries_df, "Output/FullyAdjusted/LIVEGPAR_M3_GM_Summary20260607.xlsx")
+
+#Separate model summaries and vif for export
+adj_livegparm3_GM <- adjusted_gmlivegpar_summaries_df$model_summaries
+adj_livegparsm3_GM_vif <- adjusted_gmlivegpar_summaries_df$vif
+
 
 
 
@@ -240,22 +278,24 @@ adjusted_gmchsmk <- run_linear_models(var_combinations_gmchsmk, data = complete_
 adjusted_gmchsmk_summaries_df <- models_summarize(var_combinations_gmchsmk, adjusted_gmchsmk)
 
 # Save as new dataframe
-saveRDS(adjusted_gmchsmk, file = "Model_Diagnostics/adjusted_gm3chsmk20262003.RDS")
+saveRDS(adjusted_gmchsmk, file = "Model_Diagnostics/adjusted_gm3chsmk20260607.RDS")
 
   ## Export the data frame 
-writexl::write_xlsx(adjusted_gmchsmk_summaries_df, "Output/FullyAdjusted/CHSMK_M3_GM_Summary20262003.xlsx")
+writexl::write_xlsx(adjusted_gmchsmk_summaries_df, "Output/FullyAdjusted/CHSMK_M3_GM_Summary20260607.xlsx")
 
-
+#Separate model summaries and vif for export
+adj_chsmkm3_GM <- adjusted_gmchsmk_summaries_df$model_summaries
+adj_chsmksm3_GM_vif <- adjusted_gmchsmk_summaries_df$vif
 ```
 
 
 
-## MUTUALLY ADJUSTED EXPOSURES LINEAR REGRESSION
+## MIXTURES EXPOSURES LINEAR REGRESSION
 
 ### Age Acceleration
 
 ```{r}
-## MUTUALLY ADJUSTED EXPOSURE MODEL
+## MIXTURES EXPOSURE MODEL
 grim_mutadj <- glm(GRIM_residuals ~ childrural_democoggen + SCHLYRS_rev + LIVEGPAR_R + CHSMOKE_R + age + sex + raceethnicity_collapsed + BEALE_latest + Parent_Educ + ATOTB_latest + HIBP_latest + DIAB_latest + VIGACT_collapsed + smoke_latest + GR + NK + B + CD8 + CD4 + Sample_Plate, data = complete_subset, family = gaussian(link = "identity")) 
 
 levine_mutadj <- glm(LEVINE_residuals ~ childrural_democoggen + SCHLYRS_rev + LIVEGPAR_R + CHSMOKE_R + age + sex + raceethnicity_collapsed + BEALE_latest + Parent_Educ + ATOTB_latest + HIBP_latest + DIAB_latest + VIGACT_collapsed + smoke_latest + GR + NK + B + CD8 + CD4 + Sample_Plate, data = complete_subset, family = gaussian(link = "identity")) 
@@ -265,6 +305,20 @@ mpoa_mutadj <- glm(MPOA_residuals ~ childrural_democoggen + SCHLYRS_rev + LIVEGP
 horvath_mutadj <- glm(HORVATH_residuals ~ childrural_democoggen + SCHLYRS_rev + LIVEGPAR_R + CHSMOKE_R + age + sex + raceethnicity_collapsed + BEALE_latest + Parent_Educ + ATOTB_latest + HIBP_latest + DIAB_latest + VIGACT_collapsed + smoke_latest + GR + NK + B + CD8 + CD4 + Sample_Plate, data = complete_subset, family = gaussian(link = "identity")) 
 
 hannum_mutadj <- glm(HANNUM_residuals ~ childrural_democoggen + SCHLYRS_rev + LIVEGPAR_R + CHSMOKE_R + age + sex + raceethnicity_collapsed + BEALE_latest + Parent_Educ + ATOTB_latest + HIBP_latest + DIAB_latest + VIGACT_collapsed + smoke_latest + GR + NK + B + CD8 + CD4 + Sample_Plate, data = complete_subset, family = gaussian(link = "identity")) 
+
+#Get R2
+with(summary(grim_mutadj), 1-deviance/null.deviance)
+with(summary(levine_mutadj), 1-deviance/null.deviance)
+with(summary(mpoa_mutadj), 1-deviance/null.deviance)
+with(summary(horvath_mutadj), 1-deviance/null.deviance)
+with(summary(hannum_mutadj), 1-deviance/null.deviance)
+
+#Get VIF
+car::vif(grim_mutadj)
+car::vif(levine_mutadj)
+car::vif(mpoa_mutadj)
+car::vif(horvath_mutadj)
+car::vif(hannum_mutadj)
 
 ## EXPORT
 summary_grim_mutadj <- broom::tidy(grim_mutadj, conf.int = TRUE) %>% mutate(outcome = "GRIM_residuals")
@@ -277,7 +331,7 @@ mutadj_AA <- bind_rows(summary_grim_mutadj, summary_levine_mutadj, summary_mpoa_
 
 mutadj_AA$FDR_p.value <- p.adjust(mutadj_AA$p.value, method = "fdr") 
 
-writexl::write_xlsx(mutadj_AA, "Output/FullyAdjusted/ALLexposures_M3_AA_Summary2026May08.xlsx")
+writexl::write_xlsx(mutadj_AA, "Output/FullyAdjusted/ALLexposures_M3_AA_Summary2026July06.xlsx")
 ```
 
 ### Global Methylation
@@ -293,6 +347,20 @@ shelf_mutadj <- glm(Shelf_mean ~ childrural_democoggen + SCHLYRS_rev + LIVEGPAR_
 
 shore_mutadj <- glm(Shore_mean ~ childrural_democoggen + SCHLYRS_rev + LIVEGPAR_R + CHSMOKE_R + age + sex + raceethnicity_collapsed + BEALE_latest + Parent_Educ + ATOTB_latest + HIBP_latest + DIAB_latest + VIGACT_collapsed + smoke_latest + GR + NK + B + CD8 + CD4 + Sample_Plate, data = complete_subset, family = gaussian(link = "identity")) 
 
+#Get R2
+with(summary(global_mutadj), 1-deviance/null.deviance)
+with(summary(island_mutadj), 1-deviance/null.deviance)
+with(summary(opensea_mutadj), 1-deviance/null.deviance)
+with(summary(shelf_mutadj), 1-deviance/null.deviance)
+with(summary(shore_mutadj), 1-deviance/null.deviance)
+
+#Get VIF
+car::vif(global_mutadj)
+car::vif(island_mutadj)
+car::vif(opensea_mutadj)
+car::vif(shelf_mutadj)
+car::vif(shore_mutadj)
+
 ## EXPORT
 summary_global_mutadj <- broom::tidy(global_mutadj, conf.int = TRUE) %>% mutate(outcome = "globalmethylation")
 summary_island_mutadj <- broom::tidy(island_mutadj, conf.int = TRUE) %>% mutate(outcome = "Island_mean")
@@ -304,7 +372,7 @@ mutadj_GM <- bind_rows(summary_global_mutadj, summary_island_mutadj, summary_ope
 
 mutadj_GM$FDR_p.value <- p.adjust(mutadj_GM$p.value, method = "fdr") 
 
-writexl::write_xlsx(mutadj_GM, "Output/FullyAdjusted/ALLexposures_M3_GM_Summary2026May08.xlsx")  
+writexl::write_xlsx(mutadj_GM, "Output/FullyAdjusted/ALLexposures_M3_GM_Summary2026July06.xlsx")  
 ```
 
 
@@ -313,18 +381,16 @@ writexl::write_xlsx(mutadj_GM, "Output/FullyAdjusted/ALLexposures_M3_GM_Summary2
 ```{r}
 
 ## write results to single files
-sheets_primaryAdj = list('unadj age accel' = unadjusted_m1_summaries_df, 
-                         'unadj global' = unadjusted_m2_summaries_df, 
-                         'childrural(primary adj AA)' = adjusted_mrural_summaries_df,
-                         'childrural(primary adj GM)' = adjusted_gmrural_summaries_df,
-                         'SCHLYRS(primary adj AA)' = adjusted_mschlyrs_summaries_df,
-                         'SCHLYRS(primary adj GM)' = adjusted_gmschlyrs_summaries_df,
-                         'LIVEGPAR(primary adj AA)' = adjusted_mlivegpar_summaries_df,
-                         'LIVEGPAR(primary adj GM)' = adjusted_gmlivegpar_summaries_df,
-                         'CHSMOKE(primary adj AA)' = adjusted_mchsmk_summaries_df,
-                         'CHSMOKE(primary adj GM)' = adjusted_gmchsmk_summaries_df,
-                         'ALL Exposures(primary adj AA)' = adjusted_mALL_summaries_dfh,
-                         'ALL Exposures(primary adj GM)' = adjusted_gmrural_summaries_df)
-writexl::write_xlsx(sheets_primaryAdj, 'Output/2026Mar20_primarym3_regression.xlsx')
+sheets_primaryAdj = list('unadj age accel' = unadj_AA, 
+                         'unadj global' = unadj_GM, 
+                         'childrural(primary adj AA)' = adj_ruralm3_AA,
+                         'childrural(primary adj GM)' = adj_ruralm3_GM,
+                         'SCHLYRS(primary adj AA)' = adj_schlyrsm3_AA,
+                         'SCHLYRS(primary adj GM)' = adj_schlyrsm3_GM,
+                         'LIVEGPAR(primary adj AA)' = adj_livegparm3_AA,
+                         'LIVEGPAR(primary adj GM)' = adj_livegparm3_GM,
+                         'CHSMOKE(primary adj AA)' = adj_chsmkm3_AA,
+                         'CHSMOKE(primary adj GM)' = adj_chsmkm3_GM)
+writexl::write_xlsx(sheets_primaryAdj, 'Output/2026July06_socioeconomic and behaviorm3_regression.xlsx')
   
 ```

@@ -19,7 +19,7 @@ library(readxl)
 library(summarytools)
 library(sjlabelled)
 library(labelled)
-library(qs)
+#library(qs)
 library(tidycomm)
 
 ```
@@ -29,11 +29,13 @@ library(tidycomm)
 ```{r, results='hide', message=FALSE}
 
 ## Read in DNA methylation meta file 
-Oct24_meta <- qread("Datasets/OCT_24meta.qs") 
+#Oct24_meta <- qread("Datasets/OCT_24meta.qs")
+Oct24_meta <- readRDS("Datasets/HRS_DNAm_meta_nk.RDS")
+
 ## Select columns of interest
-Oct24_meta <- select(Oct24_meta, 'HH_ID', 'PN', 'Sample_Name', 'Sample_Well', 'Sample_Plate', 'Basename', 'GR', 'NK', 'B', 'CD4', 'CD8', 'MO', 'exclude')
+#Oct24_meta <- select(Oct24_meta, 'HH_ID', 'PN', 'Sample_Name', 'Sample_Well', 'Sample_Plate', 'Basename', 'GR', 'NK', 'B', 'CD4', 'CD8', 'MO', 'exclude')
 ## Remove basename rows
-row.names(Oct24_meta) <- NULL
+#row.names(Oct24_meta) <- NULL
 
 
 ## Read in Global Methylation file
@@ -169,19 +171,19 @@ dim(HRS_DNAm_meta_Cell9)
 
 ```{r}
 
-saveRDS(Oct24_meta, file = "NewData/HRS_DNAm_meta_nk20261703.RDS")
+saveRDS(Oct24_meta, file = "NewData/HRS_DNAm_meta_nk202617Jun.RDS")
 
-saveRDS(hrs_combine_wide, file = "NewData/hrs_combine_wide_nk20261703.RDS")
+saveRDS(hrs_combine_wide, file = "NewData/hrs_combine_wide_nk202617Jun.RDS")
 
-saveRDS(hrs_democoggen_wide, file = "NewData/hrs_democoggen_wide_nk20261703.RDS")
+saveRDS(hrs_democoggen_wide, file = "NewData/hrs_democoggen_wide_nk202617Jun.RDS")
 
-saveRDS(globalM_OCT24, file = "NewData/global_methylation_nk20261703.RDS")
+saveRDS(globalM_OCT24, file = "NewData/global_methylation_nk202617Jun.RDS")
 
-saveRDS(chf, file = "NewData/chf_nk20261703.RDS")
+saveRDS(chf, file = "NewData/chf_nk202617Jun.RDS")
 
-saveRDS(full.labelled, file = "NewData/full.labelled_nk20261703.RDS")
+saveRDS(full.labelled, file = "NewData/full.labelled_nk202617Jun.RDS")
 
-saveRDS(rand92_2018V1, file = "NewData/rand92_2018V1_nk20261703.RDS")
+saveRDS(rand92_2018V1, file = "NewData/rand92_2018V1_nk202617Jun.RDS")
 
 rm(chf, full.labelled, hrs_democoggen_wide, rand92_2018V1, globalM_OCT24, hrs_combine_wide, Oct24_meta, Oct24_metaGM, HRS_DNAm_meta_Cell2, HRS_DNAm_meta_Cell4, HRS_DNAm_meta_Cell7, HRS_DNAm_meta_Cell8)
 
@@ -680,15 +682,15 @@ full$sex = set_label(full$sex, label = ("Sex"))
 
 ```{r}
 
-saveRDS(complete, file = "NewData/HRS_DNAm_meta_Cell9_Included20261703.RDS")
+saveRDS(complete, file = "NewData/HRS_DNAm_meta_Cell9_Included202617Jun.RDS")
 
   ## Subset data frame for variables of interest
 complete_subset <- select(complete, "HHIDPN", "Sample_Plate", "Basename", "HORVATH_DNAMAGE", "HORVATH_residuals", "HORVATHAccel", "HANNUM_DNAMAGE", "HANNUM_residuals", "HANNUMAccel", "LEVINE_DNAMAGE", "LEVINE_residuals", "LEVINEAccel", "DNAMGRIMAGE", "GRIM_residuals", "GRIMAccel", "MPOA", "MPOA_residuals", "MPOAAccel", "childrural_democoggen", "SCHLYRS", "SCHLYRS_cat", "SCHLYRS_rev", "LIVEGPAR_R", "CHSMOKE_R", "GR", "NK", "B", "CD4", "CD8", "MO", "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "globalmethylation_cat", "Island_mean_cat", "OpenSea_mean_cat", "Shelf_mean_cat", "Shore_mean_cat", "smoke_latest", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "HIBP_latest", "DIAB_latest", "VIGACT_latest", "VIGACT_collapsed", "age", "race.ethnicity", "raceethnicity_collapsed", "sex", "exclude", "flag_for_exclusion", "included")
 
-saveRDS(complete_subset, file = "NewData/HRS_DNAm_meta_Cell9_Includedsubset20261703.RDS")
+saveRDS(complete_subset, file = "NewData/HRS_DNAm_meta_Cell9_Includedsubset202617Jun.RDS")
 
-saveRDS(HRS_DNAm_meta_Cell9, file = "NewData/HRS_DNAm_meta_Cell9_notfiltered20261703.RDS")
+saveRDS(HRS_DNAm_meta_Cell9, file = "NewData/HRS_DNAm_meta_Cell9_notfiltered202617Jun.RDS")
 
-saveRDS(full, file = "NewData/full_filtered20261703.RDS")
+saveRDS(full, file = "NewData/full_filtered202617Jun.RDS")
 
 ```
