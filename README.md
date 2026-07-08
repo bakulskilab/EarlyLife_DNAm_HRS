@@ -10,8 +10,7 @@ DNA methylation data for the single-site analysis requires an application to the
 
 
 ## Citation
-Kanney N, Cockell S, Wang H, Fu M, Hicken MT, Payne-Sturges D, Needham B, Ware EB, Bakulski KM. Early life experiences are associated with later life DNA methylation signatures in
-the Health and Retirement Study. Journal. Year/Volume. doi/PMID
+Kanney N, Cockell S, Wang H, Fu M, Dou J, Hicken MT, Payne-Sturges D, Needham B, Ware EB, Bakulski KM. Early life experiences are associated with later life DNA methylation signatures in the Health and Retirement Study. Journal. Year/Volume. doi/PMID
 
 
 
