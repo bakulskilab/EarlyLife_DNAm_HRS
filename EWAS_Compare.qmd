@@ -153,6 +153,65 @@ UpSetR::upset(fromList(listp),
 dev.off()
 ```
 
+#### COMPARE MODEL COEFFICENTS BETWEEN MIXTURES and INDIVIDUAL EXPOSURES 
+
+```{r, warning=FALSE}
+
+png("Manuscript/Compare_Models/July8_exposure-by-mixtures-betas-scatter_allp.png", width=2800, height=1750, res = 300)
+
+par(mfrow=c(2, 3), mar=c(5,5,2,2))
+
+#rural x mixtures
+both.results <- rural_m3 %>%
+  inner_join(all_exposures, by="CpG", suffix=c(".rural_m3", ".all_exposures")) %>%
+  select(CpG, beta.rural_m3 = logFC.rural_m3, p.rural_m3 = P.Value.rural_m3, 
+         beta.all_exposures = logFC.all_exposures, p.all_exposures = P.Value.all_exposures)
+# All CpGs
+smoothScatter(both.results$beta.rural_m3 ~ both.results$beta.all_exposures, 
+              xlab="Mixtures", ylab="Grew up in a rural area", cex.lab=1.8, cex.axis=1.1)
+cor_r <- cor(both.results$beta.rural_m3, both.results$beta.all_exposures)
+mtext(paste("r = ", round(cor_r, 2)), side=3, line=-1.8, adj=0.05, cex=1.3)
+
+
+#schlyrs x mixtures
+both.results <- schlyrs_m3 %>%
+  inner_join(all_exposures, by="CpG", suffix=c(".schlyrs_m3", ".all_exposures")) %>%
+  select(CpG, beta.schlyrs_m3 = logFC.schlyrs_m3, p.schlyrs_m3 = P.Value.schlyrs_m3, 
+         beta.all_exposures = logFC.all_exposures, p.all_exposures = P.Value.all_exposures)
+# All CpGs
+smoothScatter(both.results$beta.schlyrs_m3 ~ both.results$beta.all_exposures, 
+              xlab="Mixtures", ylab="Years in school", cex.lab=1.8, cex.axis=1.1)
+cor_r <- cor(both.results$beta.schlyrs_m3, both.results$beta.all_exposures)
+mtext(paste("r = ", round(cor_r, 2)), side=3, line=-1.8, adj=0.05, cex=1.3)
+
+
+#livegpar x mixtures
+both.results <- livegpar_m3 %>%
+  inner_join(all_exposures, by="CpG", suffix=c(".livegpar_m3", ".all_exposures")) %>%
+  select(CpG, beta.livegpar_m3 = logFC.livegpar_m3, p.livegpar_m3 = P.Value.livegpar_m3, 
+         beta.all_exposures = logFC.all_exposures, p.all_exposures = P.Value.all_exposures)
+# All CpGs
+smoothScatter(both.results$beta.livegpar_m3 ~ both.results$beta.all_exposures, 
+              xlab="Mixtures", ylab="Live with a grandparent", cex.lab=1.8, cex.axis=1.1)
+cor_r <- cor(both.results$beta.livegpar_m3, both.results$beta.all_exposures)
+mtext(paste("r = ", round(cor_r, 2)), side=3, line=-1.8, adj=0.05, cex=1.3)
+
+#chsmk x mixtures
+both.results <- chsmk_m3 %>%
+  inner_join(all_exposures, by="CpG", suffix=c(".chsmk_m3", ".all_exposures")) %>%
+  select(CpG, beta.chsmk_m3 = logFC.chsmk_m3, p.chsmk_m3 = P.Value.chsmk_m3, 
+         beta.all_exposures = logFC.all_exposures, p.all_exposures = P.Value.all_exposures)
+# All CpGs
+smoothScatter(both.results$beta.chsmk_m3 ~ both.results$beta.all_exposures, 
+              xlab="Mixtures", ylab="Smoking during childhood", cex.lab=1.8, cex.axis=1.1)
+cor_r <- cor(both.results$beta.chsmk_m3, both.results$beta.all_exposures)
+mtext(paste("r = ", round(cor_r, 2)), side=3, line=-1.8, adj=0.05, cex=1.3)
+
+dev.off()
+
+```
+
+
 ### PRIOR EWAS (Maternal Educational Attainment) (Supplemental Figure 8)
 ```{r, warning=FALSE, message=FALSE}
 png(here("Manuscript/upsetplot_priormaternalea_schlyrs_plessthan0.0001.png"), width=7, height=5, units='in', res=300)
