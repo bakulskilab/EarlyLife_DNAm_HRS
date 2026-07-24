@@ -1,4 +1,4 @@
-# Early life experiences are associated with later life differences in DNA methylation in the Health and Retirement Study
+# Early life experiences are associated with later life DNA methylation signatures in the Health and Retirement Study
 
 The repository contains the datasets and R files used in the analysis of early life exposures and later life DNA methylation using data from the Health and Retirement Study (HRS).
 
