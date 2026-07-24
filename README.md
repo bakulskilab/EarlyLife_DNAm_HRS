@@ -4,7 +4,7 @@ The repository contains the datasets and R files used in the analysis of early l
 
 Original HRS datasets are available at: https://hrsdata.isr.umich.edu/data-products
 
-DNA methylation data for the single-site analysis requires an application to the National Institute on Aging Genetics of Alzheimer's Disease Data Storage Site (NIAGADS) for use (Accession Number: NG00153.v1)
+DNA methylation data for the single-site analysis requires an application to the National Institute on Aging Genetics of Alzheimer's Disease Data Storage Site (NIAGADS) for use (Accession Number: [NG00153.v1](https://dss.niagads.org/datasets/ng00153/)).
 
 
 
