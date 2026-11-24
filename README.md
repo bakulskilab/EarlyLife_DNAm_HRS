@@ -29,9 +29,9 @@ Kanney N, Cockell S, Wang H, Fu M, Dou J, Hicken MT, Payne-Sturges D, Needham B,
 
 * __ELE_DNAm_functions.R__ - functions to run code files 03, 04, Model_Diagnostics, and Forest_Plots
 
-* __03_Primary.qmd__ – linear regression models for unadjusted, health behavior SES, and mutually adjusted models for DNAm age acceleration analysis
+* __03_Demographic2026Sept23.qmd__ – linear regression models for unadjusted, health behavior SES, and mutually adjusted models for DNAm age acceleration analysis
 
-* __04_SensitivityModels.qmd__ – linear regression models for core and health only sensitivity models for DNAm age acceleration analysis
+* __04_SensitivityModels2026Sept23.qmd__ – linear regression models for core and health only sensitivity models for DNAm age acceleration analysis
 
 * __Model_Diagnostics.qmd__ – diagnostic plots from DNAm age acceleration model results
 
