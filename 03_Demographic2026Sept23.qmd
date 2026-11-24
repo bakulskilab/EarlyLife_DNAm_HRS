@@ -1,0 +1,117 @@
+---
+title: "Demographic Linear Regression Models"
+author: "NK"
+date: "`r Sys.Date()`"
+format:
+  html:
+    code-overflow: wrap
+editor_options: 
+  chunk_output_type: console
+---
+
+## LOAD PACKAGES
+
+```{r, results='hide', message=FALSE}
+
+library(readxl)
+library(car)
+library(tidyverse)
+library(tidymodels)
+library(parallel)
+library(broom)
+library(broom.helpers)
+
+```
+
+## READ IN DATA
+
+```{r, results='hide', message=FALSE}
+
+## Load complete analytic dataset (HRS_DNAm_meta_Cell9_Includedsubset) from 01_DataManage_Exclusion.qmd file
+complete_subset <- readRDS("NewData/HRS_DNAm_meta_Cell9_IncludedsubsetSept222026.RDS")
+dim(complete_subset)
+
+```
+
+## LOAD IN FUNCTIONS
+
+```{r}
+
+source('ELE_DNAm_functions.R')
+
+```
+
+## DEFINE MODEL EXPOSURES, OUTCOMES, AND COVARIATES
+
+```{r}
+
+## DEMOGRAPHIC
+  ## Define variables
+exposure_vars <- c("childrural_democoggen", "SCHLYRS_rev", "LIVEGPAR_R", "CHSMOKE_R")
+outcome_vars <- c("GRIM_residuals", "LEVINE_residuals", "MPOA_residuals", "HORVATH_residuals", "HANNUM_residuals")
+outcome_vars_gm <- c("globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean")
+  ## Define model covariates
+covars_c <- c("age", "sex", "raceethnicity_collapsed", "GR", "NK", "B", "CD8", "CD4", "Sample_Plate") 
+
+```
+
+
+## DEMOGRAPHIC
+
+### Age Acceleration
+
+```{r}
+
+## Create combinations of all outcomes and exposures
+var_combinations_c <- func_var_combinations(exposure_vars, outcome_vars)
+
+## Run the adjusted linear regression models and save results in new df
+adjusted_c <- run_linear_models(var_combinations_c, data = complete_subset, covars = covars_c)
+adjusted_mH_summaries_c <- models_summarize(var_combinations_c, adjusted_c)
+
+# Save as new dataframe
+saveRDS(adjusted_c, file = "Model_Diagnostics/adjusted_AAdemographicSept222026.RDS")
+
+## Export the data frame
+writexl::write_xlsx(adjusted_mH_summaries_c, "Output/Revisions/Adjusted_demographic_AASept222026.xlsx")
+
+#Separate model summaries and vif for export
+adj_demo_AA <- adjusted_mH_summaries_c$model_summaries
+adj_demo_AA_vif <- adjusted_mH_summaries_c$vif
+
+```
+
+### Array-wide (Global) Methylation
+
+```{r}
+## Create combinations of all outcomes and exposures
+var_combinations_gmc <- func_var_combinations(exposure_vars, outcome_vars_gm)
+
+## Run the adjusted linear regression models and save results in new df
+adjusted_gmc <- run_linear_models(var_combinations_gmc, data = complete_subset, covars = covars_c)
+adjusted_gmH_summaries_c <- models_summarize(var_combinations_gmc, adjusted_gmc)
+
+# Save as new dataframe
+saveRDS(adjusted_gmc, file = "Model_Diagnostics/adjusted_GMdemographicSept222026.RDS")
+
+## Export the data frame
+writexl::write_xlsx(adjusted_gmH_summaries_c, "Output/Revisions/Adjusted_demographic_GMSept222026.xlsx")
+
+#Separate model summaries and vif for export
+adj_demo_GM <- adjusted_gmH_summaries_c$model_summaries
+adj_demo_GM_vif <- adjusted_gmH_summaries_c$vif
+
+```
+
+
+
+## EXPORT RESULTS
+
+```{r}
+
+## write results to single files
+sheets_dnamagesensAAGM = list('Demographic (AA)' = adj_demo_AA,
+                              'Demographic (GM)' = adj_demo_GM)
+writexl::write_xlsx(sheets_dnamagesensAAGM, 'Output/Revisions/Adjusted_DEMOGRAPHIC_AA-GMSept222026.xlsx')
+
+```

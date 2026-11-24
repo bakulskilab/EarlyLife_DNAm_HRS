@@ -37,7 +37,7 @@ qq_plotschlyrs <- function(p_values, lambda_value, title) {
     labs(title = title, subtitle = paste("Lambda: ", round(lambda_value, 2)),
          x = "Expected -log10(p)",
          y = "Observed -log10(p)") +
-    scale_y_continuous(limits = c(0, 20)) +
+    scale_y_continuous(limits = c(0, 60)) +
     theme_minimal() +
     theme(plot.title = element_text(size = 20, face = "bold"), plot.subtitle = element_text(size = 20, color = "black"), axis.text = element_text(size = 20, color = "black"), axis.title = element_text(size = 20))
 }

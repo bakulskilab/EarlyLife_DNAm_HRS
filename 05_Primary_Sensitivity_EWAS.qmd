@@ -1,5 +1,5 @@
 ---
-title: "Primary & Sensitivity EWAS Models"
+title: "Demographic & Sensitivity EWAS Models"
 author: "Nita K"
 date: "`r Sys.Date()`"
 format:
@@ -87,10 +87,16 @@ covar_livegpar_ds2 = c('LIVEGPAR_R', 'age', 'sex', 'raceethnicity_collapsed', 'B
 covar_chsmk_ds_ds2_ds6 = c('CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'BEALE_latest', 'Parent_Educ', 'ATOTB_latest', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate') 
 ```
 
-### Mixtures Model: DNAm \~ rural + schlyrs+ livegpar + chsmk + age + sex + race/ethnicity + socioeconomic and behavior variable + adult health variables + GR + NK + B + CD4 + CD8 + plate
+### Co-exposure Model: DNAm \~ rural + schlyrs+ livegpar + chsmk 
 
 ```{r}
-covar_allexp = c('childrural_democoggen', 'SCHLYRS_rev', 'LIVEGPAR_R', 'CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'BEALE_latest', 'Parent_Educ', 'ATOTB_latest', 'smoke_latest', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+
+#Demographic
+covar_allexp = c('childrural_democoggen', 'SCHLYRS_rev', 'LIVEGPAR_R', 'CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+
+#Health
+covar_allexph = c('childrural_democoggen', 'SCHLYRS_rev', 'LIVEGPAR_R', 'CHSMOKE_R', 'age', 'sex', 'raceethnicity_collapsed', 'HIBP_latest', 'DIAB_latest', 'VIGACT_collapsed', 'GR', 'NK', 'B', 'CD4', 'CD8', 'Sample_Plate')
+
 ```
 
 
@@ -158,12 +164,31 @@ dim(design_matrix_ds4)
 ```
 
 
-### Mixtures Model: DNAm \~ rural + schlyrs+ livegpar + chsmk + age + sex + race/ethnicity + adult smoking + socioeconomic and behavior variable + adult health variables + GR + NK + B + CD4 + CD8 + plate
+### Co-exposure Model: DNAm \~ rural + schlyrs+ livegpar + chsmk 
 
 ```{r}
+
+
+
+
+
+
+#Demographic
 design_formula_all = as.formula(paste("~", paste(covar_allexp, collapse = " + ")))
 design_matrix_all = model.matrix(design_formula_all, data = pheno_subset)
-dim(design_matrix_all) # dim = (3562, 67)
+dim(design_matrix_all) # dim = (3562, 62)
+
+#Health
+design_formula_allh = as.formula(paste("~", paste(covar_allexph, collapse = " + ")))
+design_matrix_allh = model.matrix(design_formula_allh, data = pheno_subset)
+dim(design_matrix_allh) # dim = (3562, 67)
+
+
+
+
+
+
+
 
 ```
 
@@ -174,6 +199,10 @@ library(limma)
 
 # Fit the linear models using limma
 beta_matrix = as.matrix(beta_test_ordered)
+
+
+
+
 
 # Fit M1/Demographic
 fit_c = lmFit(beta_matrix, design_matrix_c)
@@ -216,11 +245,26 @@ fit_ds10 = eBayes(fit_ds10)
 fit_ds4 = lmFit(beta_matrix, design_matrix_ds4)
 fit_ds4 = eBayes(fit_ds4)
 
-#Fit Mixtures
+
+
+
+
+
+
+#Fit Co-exposure
+##Demographic
 fit_all = lmFit(beta_matrix, design_matrix_all)
 fit_all = eBayes(fit_all)
 
+##Health
+fit_allh = lmFit(beta_matrix, design_matrix_allh)
+fit_allh = eBayes(fit_allh)
+
 ```
+
+
+
+
 
 ## EXTRACT EWAS MODEL RESULTS
 
@@ -284,25 +328,47 @@ results_chsmk_ds = topTable(fit_ds4, coef = chsmk_ds, number = Inf, adjust.metho
 head(results_chsmk_ds)
 ```
 
-
-### Mixtures Model: DNAm \~ rural + schlyrs+ livegpar + chsmk + age + sex + race/ethnicity + adult smoking + socioeconomic and behavior variable + adult health variables + GR + NK + B + CD4 + CD8 + plate
+### Co-exposure Model: DNAm \~ rural + schlyrs+ livegpar + chsmk 
 
 ```{r}
+
+
+
+
+#Demographic
 exp_coefs <- c(childrural = "childrural_democoggenYes", schlyrs = "SCHLYRS_rev", livegpar = "LIVEGPAR_RYes", chsmk = "CHSMOKE_RYes"
 )
- 
-
 results_allexp <- list(childrural = topTable(fit_all, coef = exp_coefs["childrural"], number = Inf, adjust.method = "BH"), 
                        schlyrs = topTable(fit_all, coef = exp_coefs["schlyrs"], number = Inf, adjust.method = "BH"), 
                        livegpar = topTable(fit_all, coef = exp_coefs["livegpar"], number = Inf, adjust.method = "BH"), 
                        chsmk = topTable(fit_all, coef = exp_coefs["chsmk"], number = Inf, adjust.method = "BH"))
-
-
-result_allexplong <- dplyr::bind_rows(dplyr::mutate(tibble::rownames_to_column(results_allexp$childrural, var = "CpG"), exposure = "childrural"),
+results_allexp_long <- dplyr::bind_rows(dplyr::mutate(tibble::rownames_to_column(results_allexp$childrural, var = "CpG"), exposure = "childrural"),
                 dplyr::mutate(tibble::rownames_to_column(results_allexp$schlyrs, var = "CpG"), exposure = "schlyrs"),
                 dplyr::mutate(tibble::rownames_to_column(results_allexp$livegpar, var = "CpG"), exposure = "livegpar"),
                 dplyr::mutate(tibble::rownames_to_column(results_allexp$chsmk, var = "CpG"), exposure = "chsmk"))
+
+#Health
+exp_coefsh <- c(childrural = "childrural_democoggenYes", schlyrs = "SCHLYRS_rev", livegpar = "LIVEGPAR_RYes", chsmk = "CHSMOKE_RYes"
+)
+results_allexph <- list(childrural = topTable(fit_allh, coef = exp_coefsh["childrural"], number = Inf, adjust.method = "BH"), 
+                       schlyrs = topTable(fit_allh, coef = exp_coefsh["schlyrs"], number = Inf, adjust.method = "BH"), 
+                       livegpar = topTable(fit_allh, coef = exp_coefsh["livegpar"], number = Inf, adjust.method = "BH"), 
+                       chsmk = topTable(fit_allh, coef = exp_coefsh["chsmk"], number = Inf, adjust.method = "BH"))
+
+results_allexp_longh <- dplyr::bind_rows(dplyr::mutate(tibble::rownames_to_column(results_allexph$childrural, var = "CpG"), exposure = "childrural"),
+                dplyr::mutate(tibble::rownames_to_column(results_allexph$schlyrs, var = "CpG"), exposure = "schlyrs"),
+                dplyr::mutate(tibble::rownames_to_column(results_allexph$livegpar, var = "CpG"), exposure = "livegpar"),
+                dplyr::mutate(tibble::rownames_to_column(results_allexph$chsmk, var = "CpG"), exposure = "chsmk"))
+
+
+
+
+
+
+
 ```
+
+
 
 
 ## ANNOTATE AND EXPORT MODEL RESULTS
@@ -336,8 +402,15 @@ results_livegpar_ds10 = results_livegpar_ds10 %>% mutate(CpG = rownames(results_
 
 results_chsmk_ds = results_chsmk_ds %>% mutate(CpG = rownames(results_chsmk_ds))
 
-  ## Mixtures
+
+
+
+
+
+
+  ## Co-exposure
 results_allexp_long = results_allexp_long %>% mutate(CpG = rownames(results_allexp_long))
+results_allexp_longh = results_allexp_longh %>% mutate(CpG = rownames(results_allexp_longh))
 
 
 # Load annotation data for the CpG sites
@@ -400,8 +473,6 @@ results_chsmk_cannotated = merge(results_chsmk_c, annotation_df, by = "CpG")
 results_chsmk_cannotated$P = as.numeric(results_chsmk_cannotated$P.Value)
 save(results_chsmk_cannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm1_chsmk_demographic.rda")
 
-
-
 ## M2/Health 
 results_rural_hannotated = merge(results_rural_h, annotation_df, by = "CpG")
 # Ensure p-values are numeric
@@ -422,8 +493,6 @@ results_chsmk_hannotated = merge(results_chsmk_h, annotation_df, by = "CpG")
 # Ensure p-values are numeric
 results_chsmk_hannotated$P = as.numeric(results_chsmk_hannotated$P.Value)
 save(results_chsmk_hannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm1_chsmk_h.rda")
-
-
 
 ## M3/Socioeconomic and behavior
 results_rural_ds8annotated = merge(results_rural_ds8, annotation_df, by = "CpG")
@@ -447,10 +516,23 @@ results_chsmk_dsannotated$P = as.numeric(results_chsmk_dsannotated$P.Value)
 save(results_chsmk_dsannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm3_chsmk_ds.rda")
 
 
-## Mixtures
+
+
+
+
+
+
+## Co-exposure
+###Demographic
 results_allexpannotated = merge(results_allexp_long, annotation_df, by = "CpG")
   ## Ensure p-values are numeric
 results_allexpannotated$P = as.numeric(results_allexpannotated$P.Value)
-save(results_allexpannotated, file = "Jan162026-Updates/March172026/05_model_results/resultsm3_allexposures_2026Apr29.rda")
+save(results_allexpannotated, file = "Revisions_co-exposure_Sept232026/resultsDemographic_allexposures.rda")
+
+###Health
+results_allexpannotatedh = merge(results_allexp_longh, annotation_df, by = "CpG")
+  ## Ensure p-values are numeric
+results_allexpannotatedh$P = as.numeric(results_allexpannotatedh$P.Value)
+save(results_allexpannotatedh, file = "Revisions_co-exposure_Sept232026/resultsHealth_allexposures.rda")
 
 ```

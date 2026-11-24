@@ -29,6 +29,8 @@ library(ggdist)
 library(consort)
 library(cardx)
 library(cowplot)
+library(tableone)
+library(naniar)
 
 ```
 
@@ -37,12 +39,12 @@ library(cowplot)
 ```{r, results='hide', message=FALSE}
 
 ## Load complete analytic dataset (HRS_DNAm_meta_Cell9_Includedsubset) from 01_DataManage_Exclusion.qmd file
-complete_subset <- readRDS("NewData/HRS_DNAm_meta_Cell9_Includedsubset202617Jun.RDS")
+complete_subset <- readRDS("NewData/HRS_DNAm_meta_Cell9_IncludedsubsetSept222026.RDS")
 dim(complete_subset)
 
 
 ## Load full data set from 01_Exclusion.qmd file
-full_ele <- readRDS("NewData/full_filtered202617Jun.RDS")
+full_ele <- readRDS("NewData/full_filteredSept222026.RDS")
 dim(full_ele)
 
 ```
@@ -382,7 +384,197 @@ bivar_schlyrs <- bivar_schlyrs %>%
     "Parent_Educ") & row_type == "level", indent = 6) 
 
 
-  ## GRIMAge
+## MERGE BIVARIATE TABLES (GrimAge and four early life exposures)
+ELE_bivar_merge <- tbl_merge(
+  tbls = list(bivar_childrural, bivar_schlyrs, bivar_livegpar, bivar_chsmk),
+  tab_spanner = c("Grew up in a Rural Area", "Years in School", "Live with a Grandparent", "Child Smoking")
+)
+ELE_bivar_merge
+
+
+## Save as word doc
+ELE_bivar_merge %>% 
+  as_flex_table() %>% 
+  flextable::font(fontname = "Arial", part = "all") %>% 
+  flextable::fontsize(size = 5, part = "all") %>% 
+  flextable::width(j = NULL, width = 1.5) %>%
+  flextable::save_as_docx(path ="Manuscript/Revisions/KANNEY_Aim1_ELEbivartbl1MERGE_2026Oct21.docx")
+
+```
+
+
+## BIVARIATE TABLES (SUPPLEMENTAL TABLE 2)
+
+```{r}
+
+## Get bivariate table using the complete filtered df from above (only complete/included sample)
+  ## Save variable labels into data frame for table
+variable_labels <- get_label(complete_subset)
+  ## MPOA age acceleration
+bivar_mpoa <- complete_subset %>% 
+  tbl_summary(by = MPOAAccel, #BY: binary MPOA age acceleration
+              set_gtsummary_theme(list("tbl_summary-fn:percent_fun" = function(x) sprintf(x * 100, fmt='%#.1f'))),
+              statistic = list(all_continuous() ~ "{mean} ({sd})",
+                               all_continuous2() ~ "{median} ({p25}, {p75})", 
+                               all_categorical() ~ "{n} ({p}%)"),
+                            digits = list(all_continuous() ~ 1),
+             include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest"),
+              type = list(age ~ 'continuous', 
+                          GR ~ 'continuous',
+                          NK ~ 'continuous',
+                          B ~ 'continuous',
+                          CD4 ~ 'continuous',
+                          CD8 ~ 'continuous',
+                          MO ~ 'continuous',
+                          HORVATH_residuals ~ 'continuous',
+                          HANNUM_residuals ~ 'continuous',
+                          GRIM_residuals ~ 'continuous',
+                          LEVINE_residuals ~ 'continuous',
+                          MPOA_residuals ~ 'continuous',
+                          sex ~ 'categorical',
+                          race.ethnicity ~ 'categorical',
+                          globalmethylation ~ 'continuous',
+                          Island_mean ~ 'continuous',
+                          OpenSea_mean ~ 'continuous',
+                          Shelf_mean ~ 'continuous',
+                          Shore_mean ~ 'continuous',
+                          SCHLYRS ~ 'continuous',
+                          childrural_democoggen ~ 'categorical',
+                          CHSMOKE_R ~ 'categorical',
+                          LIVEGPAR_R ~ 'categorical',
+                          BEALE_latest ~ 'categorical',
+                          smoke_latest ~ 'categorical',
+                          HIBP_latest ~ 'categorical',
+                          DIAB_latest ~ 'categorical',
+                          VIGACT_collapsed ~ 'categorical',
+                          Parent_Educ ~ 'categorical',
+                          ATOTB_latest ~ 'continuous2'), 
+              label = as.list(variable_labels),
+              missing_text = "Missing" 
+  )  
+  ## Insert headers at the correct positions manually
+bivar_mpoa <- bivar_mpoa %>%
+  modify_table_body(
+    ~ .x %>%
+      add_row(variable = "Phenotypic age DNAm Measures", row_type = "label", label = "Phenotypic age DNAm measures (years)",
+              .before = which(.$variable == "GRIM_residuals")[1]) %>%
+      add_row(variable = "Chronologic age DNAm Measures", row_type = "label", label = "Chronologic age DNAm measures (years)",
+              .before = which(.$variable == "HORVATH_residuals")[1]) %>%
+      add_row(variable = "Methylation by molecular location", row_type = "label", label = "Methylation by molecular location (mean (percent))",
+              .before = which(.$variable == "globalmethylation")[1]) %>%
+      add_row(variable = "Cell Composition", row_type = "label", label = "Cell composition (percent)",
+              .before = which(.$variable == "GR")[1]) %>%
+      add_row(variable = "Early Life Exposures", row_type = "label", label = "Early life exposures",
+              .before = which(.$variable == "childrural_democoggen")[1]) %>%
+      add_row(variable = "Participant demographics", row_type = "label", label = "Participant demographics",
+              .before = which(.$variable == "age")[1]) %>%
+      add_row(variable = "Adult Variables", row_type = "label", label = "Health, socioeconomic, and behavior variables",
+              .before = which(.$variable == "HIBP_latest")[1])
+  ) %>% bold_labels() 
+  ## Indent variables
+bivar_mpoa <- bivar_mpoa %>%
+  modify_column_indent(columns = "label", rows = variable %in% c(
+    "LEVINE_residuals",  "GRIM_residuals", 
+    "MPOA_residuals",  "HORVATH_residuals", 
+    "HANNUM_residuals",  "globalmethylation",
+    "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean",
+    "GR", "NK", "B", "CD4",
+    "CD8", "MO", "SCHLYRS", "childrural_democoggen",
+    "CHSMOKE_R", "LIVEGPAR_R",
+    "age", "sex", "race.ethnicity", "smoke_latest",
+    "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
+    "ATOTB_latest", "Parent_Educ"), indent = 5) %>%
+  # Double indent specific rows
+  modify_column_indent(columns = "label", rows = variable %in% c(
+    "childrural_democoggen", "CHSMOKE_R", "LIVEGPAR_R",
+    "sex", "race.ethnicity", "smoke_latest",
+    "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
+    "Parent_Educ") & row_type == "level", indent = 6) 
+
+
+  # Levine Age Acceleration
+bivar_levine <- complete_subset %>% 
+  tbl_summary(by = LEVINEAccel, #BY: binary GrimAge acceleration
+              set_gtsummary_theme(list("tbl_summary-fn:percent_fun" = function(x) sprintf(x * 100, fmt='%#.1f'))),
+              statistic = list(all_continuous() ~ "{mean} ({sd})",
+                               all_continuous2() ~ "{median} ({p25}, {p75})", 
+                               all_categorical() ~ "{n} ({p}%)"),
+                            digits = list(all_continuous() ~ 1),
+             include = c("GRIM_residuals",  "MPOA_residuals",  "LEVINE_residuals",  "HORVATH_residuals",  "HANNUM_residuals",  "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "GR", "NK", "B", "CD4", "CD8", "MO", "childrural_democoggen", "SCHLYRS", "LIVEGPAR_R", "CHSMOKE_R", "age", "sex", "race.ethnicity", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "smoke_latest"),
+              type = list(age ~ 'continuous', 
+                          GR ~ 'continuous',
+                          NK ~ 'continuous',
+                          B ~ 'continuous',
+                          CD4 ~ 'continuous',
+                          CD8 ~ 'continuous',
+                          MO ~ 'continuous',
+                          HORVATH_residuals ~ 'continuous',
+                          HANNUM_residuals ~ 'continuous',
+                          GRIM_residuals ~ 'continuous',
+                          LEVINE_residuals ~ 'continuous',
+                          MPOA_residuals ~ 'continuous',
+                          sex ~ 'categorical',
+                          race.ethnicity ~ 'categorical',
+                          globalmethylation ~ 'continuous',
+                          Island_mean ~ 'continuous',
+                          OpenSea_mean ~ 'continuous',
+                          Shelf_mean ~ 'continuous',
+                          Shore_mean ~ 'continuous',
+                          SCHLYRS ~ 'continuous',
+                          childrural_democoggen ~ 'categorical',
+                          CHSMOKE_R ~ 'categorical',
+                          LIVEGPAR_R ~ 'categorical',
+                          BEALE_latest ~ 'categorical',
+                          smoke_latest ~ 'categorical',
+                          HIBP_latest ~ 'categorical',
+                          DIAB_latest ~ 'categorical',
+                          VIGACT_collapsed ~ 'categorical',
+                          Parent_Educ ~ 'categorical',
+                          ATOTB_latest ~ 'continuous2'), 
+              label = as.list(variable_labels),
+              missing_text = "Missing" 
+  )  
+  ## Insert headers at the correct positions manually
+bivar_levine <- bivar_levine %>%
+  modify_table_body(
+    ~ .x %>%
+      add_row(variable = "Phenotypic age DNAm Measures", row_type = "label", label = "Phenotypic age DNAm measures (years)",
+              .before = which(.$variable == "GRIM_residuals")[1]) %>%
+      add_row(variable = "Chronologic age DNAm Measures", row_type = "label", label = "Chronologic age DNAm measures (years)",
+              .before = which(.$variable == "HORVATH_residuals")[1]) %>%
+      add_row(variable = "Methylation by molecular location", row_type = "label", label = "Methylation by molecular location (mean (percent))",
+              .before = which(.$variable == "globalmethylation")[1]) %>%
+      add_row(variable = "Cell Composition", row_type = "label", label = "Cell composition (percent)",
+              .before = which(.$variable == "GR")[1]) %>%
+      add_row(variable = "Early Life Exposures", row_type = "label", label = "Early life exposures",
+              .before = which(.$variable == "childrural_democoggen")[1]) %>%
+      add_row(variable = "Participant demographics", row_type = "label", label = "Participant demographics",
+              .before = which(.$variable == "age")[1]) %>%
+      add_row(variable = "Adult Variables", row_type = "label", label = "Health, socioeconomic, and behavior variables",
+              .before = which(.$variable == "HIBP_latest")[1])
+  ) %>% bold_labels() 
+  ## Indent variables
+bivar_levine <- bivar_levine %>%
+  modify_column_indent(columns = "label", rows = variable %in% c(
+    "LEVINE_residuals",  "GRIM_residuals", 
+    "MPOA_residuals",  "HORVATH_residuals", 
+    "HANNUM_residuals",  "globalmethylation",
+    "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean",
+    "GR", "NK", "B", "CD4",
+    "CD8", "MO", "SCHLYRS", "childrural_democoggen",
+    "CHSMOKE_R", "LIVEGPAR_R",
+    "age", "sex", "race.ethnicity", "smoke_latest",
+    "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
+    "ATOTB_latest", "Parent_Educ"), indent = 5) %>%
+  # Double indent specific rows
+  modify_column_indent(columns = "label", rows = variable %in% c(
+    "childrural_democoggen", "CHSMOKE_R", "LIVEGPAR_R",
+    "sex", "race.ethnicity", "smoke_latest",
+    "BEALE_latest", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed",
+    "Parent_Educ") & row_type == "level", indent = 6) 
+
+
+  ## GrimAge acceleration
 bivar_grim <- complete_subset %>% 
   tbl_summary(by = GRIMAccel, #BY: binary GrimAge acceleration
               set_gtsummary_theme(list("tbl_summary-fn:percent_fun" = function(x) sprintf(x * 100, fmt='%#.1f'))),
@@ -465,22 +657,23 @@ bivar_grim <- bivar_grim %>%
 
 
 ## MERGE BIVARIATE TABLES (GrimAge and four early life exposures)
-ELE_GRIM_bivar_merge <- tbl_merge(
-  tbls = list(bivar_childrural, bivar_schlyrs, bivar_livegpar, bivar_chsmk, bivar_grim),
-  tab_spanner = c("Grew up in a Rural Area", "Years in School", "Live with a Grandparent", "Child Smoking", "GrimAge Acceleration")
+PhenoDNAmAA_bivar_merge <- tbl_merge(
+  tbls = list(bivar_grim, bivar_mpoa, bivar_levine),
+  tab_spanner = c("GrimAge Acceleration", "MPOA Acceleration", "Levine Acceleration")
 )
-ELE_GRIM_bivar_merge
+PhenoDNAmAA_bivar_merge
 
 
 ## Save as word doc
-ELE_GRIM_bivar_merge %>% 
+PhenoDNAmAA_bivar_merge %>% 
   as_flex_table() %>% 
   flextable::font(fontname = "Arial", part = "all") %>% 
   flextable::fontsize(size = 5, part = "all") %>% 
   flextable::width(j = NULL, width = 1.5) %>%
-  flextable::save_as_docx(path ="Manuscript/KANNEY_Aim1_bivartblMERGE_202606July.docx")
+  flextable::save_as_docx(path ="Manuscript/Revisions/KANNEY_Aim1_suppltbl2bivarMERGE_2026Oct21.docx")
 
 ```
+
 
 ## EXCLUSION FLOWCHART (FIGURE 1)
 
@@ -548,6 +741,52 @@ consort1 <- consort::consort_plot(data_flow2, ## data created above
 consort1
 
 ```
+
+
+## TEST SELECTION BIAS (Revisions) (SUPPL FIGURE 2. & SUPPL TABLE 3)
+```{r}
+
+#Get list of covariates
+covars_bias <- full_ele %>% select(GRIM_residuals, MPOA_residuals, LEVINE_residuals, HORVATH_residuals, HANNUM_residuals, globalmethylation, Island_mean, OpenSea_mean, Shelf_mean, Shore_mean, GR, NK, B, CD4, CD8, MO, childrural_democoggen, SCHLYRS, LIVEGPAR_R, CHSMOKE_R,  age, sex, race.ethnicity, HIBP_latest, DIAB_latest, VIGACT_collapsed, BEALE_latest, Parent_Educ, ATOTB_latest, smoke_latest, included) %>% names()
+
+#Create missingness table (Supplemental Figure. 2) 
+miss_vars <- CreateTableOne(vars = covars_bias,
+                            strata = "included",
+                            data = full_ele,
+                            includeNA = TRUE)
+  
+print(miss_vars, missing = TRUE) 
+summary(miss_vars)
+
+# Export
+csv_save <- print(miss_vars, missing = TRUE, printToggle = FALSE) 
+write.csv(csv_save, file = "Output/Revisions/percentmissing_inclexcl_Sept232026.csv")
+
+
+covars_bias <- full_ele %>% select(GRIM_residuals, MPOA_residuals, LEVINE_residuals, HORVATH_residuals, HANNUM_residuals, globalmethylation, Island_mean, OpenSea_mean, Shelf_mean, Shore_mean, GR, NK, B, CD4, CD8, MO, childrural_democoggen, SCHLYRS, LIVEGPAR_R, CHSMOKE_R,  age, sex, race.ethnicity, HIBP_latest, DIAB_latest, VIGACT_collapsed, BEALE_latest, Parent_Educ, ATOTB_latest, smoke_latest) 
+
+covars_bias %>% miss_var_summary()
+gg_miss_var(covars_bias, show_pct = TRUE) + scale_x_discrete(labels = variable_labels)
+
+
+
+# Logistic regression (Excluded is the reference) (Supplemental Table. 3)
+class(full_ele$included)
+full_ele$included <- factor(full_ele$included)
+full_ele$raceethnicity_collapsed <- factor(full_ele$raceethnicity_collapsed, ordered = FALSE)
+full_ele$childrural_democoggen <- factor(full_ele$childrural_democoggen, ordered = FALSE)
+full_ele$LIVEGPAR_R <- factor(full_ele$LIVEGPAR_R, ordered = FALSE)
+full_ele$CHSMOKE_R <- factor(full_ele$CHSMOKE_R, ordered = FALSE)
+full_ele$HIBP_latest <- factor(full_ele$HIBP_latest, ordered = FALSE)
+full_ele$DIAB_latest <- factor(full_ele$DIAB_latest, ordered = FALSE)
+full_ele$smoke_latest <- factor(full_ele$smoke_latest, ordered = FALSE)
+
+selectionbias_m1 <- glm(included ~ age + raceethnicity_collapsed + Parent_Educ + ATOTB_latest, data = full_ele, family = "binomial")
+summary(selectionbias_m1)
+exp(cbind(OR = coef(selectionbias_m1), confint(selectionbias_m1)))
+
+```
+
 
 ## RAINCLOUD PLOT (FIGURE 2)
 
@@ -626,7 +865,7 @@ raincloud_plot
 
 
 # Export
-save_plot("Manuscript/raincloud_plot_202606July.png", raincloud_plot, base_width = 20, base_height = 12, dpi = 900, bg = "white")
+save_plot("Manuscript/Revisions/raincloud_plot_2026Sept23.png", raincloud_plot, base_width = 20, base_height = 12, dpi = 900, bg = "white")
 
 ```
 
@@ -658,7 +897,7 @@ resid_plotGRIM <- plot_grid(grim_scatter1, grim_scatter2, labels = c('A', 'B'), 
 resid_plotGRIM
 
 #Export
-save_plot("Manuscript/resid_plotGRIM_202606July.png", resid_plotGRIM, base_width = 18, base_height = 8, dpi = 900, bg = "white")
+save_plot("Manuscript/Revisions/resid_plotGRIM_2026Sept23.png", resid_plotGRIM, base_width = 18, base_height = 8, dpi = 900, bg = "white")
 
 ```
 
@@ -760,11 +999,11 @@ include_exclude_table %>%
   flextable::font(fontname = "Arial", part = "all") %>% 
   flextable::fontsize(size = 11, part = "all") %>% 
   flextable::width(j = NULL, width = 1.5) %>%
-  flextable::save_as_docx(path ="Manuscript/KANNEY_Aim1_inclexcl_tableAddP_202623Mar_fishersONLY.docx")
+  flextable::save_as_docx(path ="Manuscript/Revisions/KANNEY_Aim1_inclexcl_tableAddP_2026Sept23_fishersONLY.docx")
 
 ```
 
-## CORRELATION PLOT (SUPPLEMENTAL FIGURE 2 and 3)
+## CORRELATION PLOT (SUPPLEMENTAL FIGURE 3 and 4)
 
 ```{r, fig.width=12, fig.height=8}
 
@@ -777,19 +1016,19 @@ labels <- get_label(aim1_elecorr)
 rownames(res) <- labels
 colnames(res) <- labels 
 
-# Plot the correlations with ggcorrplot
+# Plot the correlations with ggcorrplot (Supplemental Figure. 3)
 corplot <- ggcorrplot(res, type = "lower", outline.col = "white", digits = 2, lab = TRUE, lab_col = "black", lab_size = 1.8, tl.cex = 9.5, show.legend = TRUE, legend.title = "Pearson Correlation Coefficient (r)")
 corplot2 <- ggcorrplot(res, type = "lower", outline.col = "white", digits = 2, lab = TRUE, lab_col = "black", lab_size = 1.8, tl.cex = 9.5, show.legend = FALSE)
 corplot
 
 
 #Export
-save_plot("Manuscript/corr_plot_202606July.png", corplot, base_width = 15, base_height = 6, dpi = 1200, bg = "white")
-save_plot("Manuscript/corr_plot_nolegend_202606July.png", corplot2, base_width = 15, base_height = 6, dpi = 1200, bg = "white")
+save_plot("Manuscript/Revisions/corr_plot_2026Sept23.png", corplot, base_width = 15, base_height = 6, dpi = 1200, bg = "white")
+save_plot("Manuscript/Revisions/corr_plot_nolegend_2026Sept23.png", corplot2, base_width = 15, base_height = 6, dpi = 1200, bg = "white")
 
 
 
-#Correlation between categorical variables
+#Correlation between categorical variables (Supplemental Figure. 4)
 ##sex, race/ethnicity, rural, schlyrs_cat, livegpar, chsmk, hibp, diab, vigact, beale, parent educ, smoke
 corr_cat <- select(complete_subset, "sex", "raceethnicity_collapsed", "childrural_democoggen", "SCHLYRS_cat", "LIVEGPAR_R", "CHSMOKE_R", "HIBP_latest", "DIAB_latest", "VIGACT_collapsed", "BEALE_latest", "smoke_latest", "Parent_Educ")
 

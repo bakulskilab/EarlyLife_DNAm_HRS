@@ -101,14 +101,12 @@ chsmk_ds <- results_chsmk_dsannotated
 rm(results_chsmk_dsannotated)
 chsmk_m3 <- chsmk_ds %>% mutate(logFCpercent = logFC * 100)
 
-
-#Mixtures Exposure Models
-load("NewData/EWAS/resultsm3_allexposures_2026May07.rda")
+#Co-Exposure Models
+##Demographic
+load("NewData/resultsDemographic_allexposures.rda")
 all_exposures <- results_allexpannotated
 rm(results_allexpannotated)
 all_exposures <- all_exposures %>% mutate(logFCpercent = logFC * 100)
-
-
 
 #Maternal educational attainment in pregnancy and epigenome-wide DNA methylation changes in the offspring from birth until adolescence (PMID: 38052982)
 maternal_educ_ewas <- readxl::read_xlsx("Datasets/PMID-38052982-ewas-maternaleducation.xlsx")
@@ -131,16 +129,16 @@ source('EWAS_function.R')
 
 ```
 
-## GET DIAGNOSTIC (QQ) PLOTS (Supplemental Figure 5)
+## GET DIAGNOSTIC (QQ) PLOTS (Supplemental Figure 6)
 
 ```{r}
 
 # Genomic inflation in EWAS
   ## Extract p_values for (M3/Health,SES,Behavior)
-p_values9 <- rural_m3$P.Value
-p_values10 <- schlyrs_m3$P.Value
-p_values11 <- livegpar_m3$P.Value
-p_values12 <- chsmk_m3$P.Value
+p_values9 <- demographic_rural$P.Value
+p_values10 <- demographic_schlyrs$P.Value
+p_values11 <- demographic_livegpar$P.Value
+p_values12 <- demographic_chsmk$P.Value
 
   ## Extract lambda values (Model 3/Socioeconomic and behavior)
 lambda_value9 <- calculate_lambda(p_values9)
@@ -151,16 +149,16 @@ lambda_value12 <- calculate_lambda(p_values12)
 
 #Generate plots
   ## M3
-qq_ruralm3 <- qq_plot2(p_values9, lambda_value9, "Grew up in a rural area")
-qq_schlyrsm3 <- qq_plotschlyrs(p_values10, lambda_value10, "Years in school")
-qq_livegparm3 <- qq_plot2(p_values11, lambda_value11, "Live with a grandparent")
-qq_chsmkm3 <- qq_plot2(p_values12, lambda_value12, "Smoking during childhood")
+qq_rural <- qq_plot2(p_values9, lambda_value9, "Grew up in a rural area")
+qq_schlyrs <- qq_plotschlyrs(p_values10, lambda_value10, "Years in school")
+qq_livegpar <- qq_plot2(p_values11, lambda_value11, "Live with a grandparent")
+qq_chsmk <- qq_plotschlyrs(p_values12, lambda_value12, "Smoking during childhood")
 
 # Combine
-qq_plots3 <- plot_grid(qq_ruralm3, qq_schlyrsm3,qq_livegparm3, qq_chsmkm3, ncol = 2)
+qq_plots3 <- plot_grid(qq_rural, qq_schlyrs,qq_livegpar, qq_chsmk, ncol = 2)
 
 # Export
-save_plot("Manuscript/Jul1_qq_plots_m3.png", qq_plots3, base_width = 18, base_height = 15, dpi = 1200, bg = "white")
+save_plot("Manuscript/Revisions/Oct122026_qq_plots_demographic.png", qq_plots3, base_width = 18, base_height = 15, dpi = 1200, bg = "white")
 
 ```
 
@@ -171,10 +169,10 @@ save_plot("Manuscript/Jul1_qq_plots_m3.png", qq_plots3, base_width = 18, base_he
 ```{r}
 
 #Get Number with Higher and Lower Methylation
-fdrp <- rural_m3[rural_m3$adj.P.Val < 0.05,]
-sig <- rural_m3$P.Value < 0.05
-sig_between <- rural_m3$P.Value < 0.05 & rural_m3$P.Value >= 1e-7
-betas_sig <- rural_m3$logFCpercent[sig_between]
+fdrp1 <- demographic_rural[demographic_rural$adj.P.Val < 0.05,]
+sig1 <- demographic_rural$P.Value < 0.05
+sig_between <- demographic_rural$P.Value < 0.05 & demographic_rural$P.Value >= 1e-7
+betas_sig <- demographic_rural$logFCpercent[sig_between]
 rural_higher <- sum(betas_sig>0, na.rm=T)
 rural_lower <- sum(betas_sig<0, na.rm=T)
 rural_total <- length(betas_sig)
@@ -184,17 +182,18 @@ pct_lower_sig <- (rural_lower/rural_total)*100
 cat("Higher Methylation N:", rural_higher, "(",round(pct_higher_sig, 2), "%)\n")
 cat("Lower Methylation N:", rural_lower, "(",round(pct_lower_sig, 2), "%)\n")
 
- ## M3
+ ## M1
 #Plot
-plot.volcano <- function(rural_m3,main=NULL,xlim=NULL,ylim=NULL, nudge=0, title=""){par(mar=c(5,5,3,3))
+plot.volcano <- function(demographic_rural,main=NULL,xlim=NULL,ylim=NULL, nudge=0, title=""){par(mar=c(5,5,3,3))
 #get betas and pvals from single sites results
-betas <- rural_m3$logFCpercent
-pvals <- -log(rural_m3$P.Value,10)
+betas <- demographic_rural$logFCpercent
+pvals <- -log(demographic_rural$P.Value,10)
 #assign colors
 pcol <- ifelse(pvals < -log(0.05,10), 'darkslategrey', ifelse(betas>0,'#558899','#559999'))
 #get percent hyper/hypo for sites above threshold
 total <- table(pcol)['#558899'] + table(pcol)['#559999']
 pct <- c(round(table(pcol)['#558899']/total * 100,1),round(table(pcol)['#559999']/total * 100,1))
+
 #auto calculate axis range if not defined
 if(is.null(xlim)){
   max.x <- max(abs(betas))
@@ -213,16 +212,15 @@ df <- data.frame(betas=betas, pvals=pvals, col=pcol)
                  arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) +
     annotate("segment", x = 0.12, xend = 0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
                  arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) + 
-    annotate("text", x = -1.0, y = max(ylim) -0.3, label = "Lower percent \n methylation", size = 10, hjust = 1.02) +
-    annotate("text", x = 1.0, y = max(ylim) -0.3, label = "Higher percent \n methylation", size = 10, hjust = -0.02) +
+    annotate("text", x = -1.0, y = max(ylim) -0.35, label = "Lower percent \n methylation", size = 6, hjust = 1.02) +
+    annotate("text", x = 1.0, y = max(ylim) -0.35, label = "Higher percent \n methylation", size = 6, hjust = -0.02) +
     theme_bw() +
     theme(title=element_text(size = 28), axis.text=element_text(size=25), axis.title = element_text(size = 28)) +
-    xlim(xlim) + ylim(ylim) +
     xlab(paste0('Adjusted difference in percent DNA methylation')) + ylab(expression('-Log'[10]*'(P-Value)')) +
     annotate("text", x = xlim[2] - 0.02, y = 5.5, label = paste0(pct[1],'%'), color='darkslategrey', size = 10, fontface = 'bold', hjust = 1) +
     annotate("text", x = xlim[1] + 0.02, y = 5.5, label = paste0(pct[2],'%'), color='#558899', size = 10, fontface = 'bold', hjust = 0) 
 }
-volcano_rural3 <- plot.volcano(rural_m3, ylim=c(0,15.3), xlim=c(-5,5), nudge=0.015, title = "A. Grew up in a rural area")
+volcano_rural3 <- plot.volcano(demographic_rural, ylim = c(0, 15.5), xlim = c(-6.5,6.5), nudge=0.015, title = "A. Grew up in a rural area")
 
 ```
 
@@ -231,10 +229,10 @@ volcano_rural3 <- plot.volcano(rural_m3, ylim=c(0,15.3), xlim=c(-5,5), nudge=0.0
 ```{r}
 
 #Get Number with Higher and Lower Methylation
-fdrp <- schlyrs_m3[schlyrs_m3$adj.P.Val < 0.05,]
-sig <- schlyrs_m3$P.Value < 0.05
-sig_between <- schlyrs_m3$P.Value < 0.05 & schlyrs_m3$P.Value >= 1e-7
-betas_sig <- schlyrs_m3$logFCpercent[sig_between]
+fdrp2 <- demographic_schlyrs[demographic_schlyrs$adj.P.Val < 0.05,]
+sig2 <- demographic_schlyrs$P.Value < 0.05
+sig_between <- demographic_schlyrs$P.Value < 0.05 & demographic_schlyrs$P.Value >= 1e-7
+betas_sig <- demographic_schlyrs$logFCpercent[sig_between]
 schlyrs_higher <- sum(betas_sig>0, na.rm=T)
 schlyrs_lower <- sum(betas_sig<0, na.rm=T)
 schlyrs_total <- length(betas_sig)
@@ -245,17 +243,21 @@ cat("Higher Methylation N:", schlyrs_higher, "(",round(pct_higher_sig, 2), "%)\n
 cat("Lower Methylation N:", schlyrs_lower, "(",round(pct_lower_sig, 2), "%)\n")
 
 
-  ## M3
-plot.volcano <- function(schlyrs_m3,main=NULL,xlim=NULL,ylim=NULL, nudge=0,
+  ## M1
+plot.volcano <- function(demographic_schlyrs,main=NULL,xlim=NULL,ylim=NULL, nudge=0,
               pct_higher_sig=NULL, pct_lower_sig=NULL, title=""){par(mar=c(5,5,3,3))
 #get betas and pvals from single sites results
-betas <- schlyrs_m3$logFCpercent 
-pvals <- -log10(schlyrs_m3$P.Value)
+betas <- demographic_schlyrs$logFCpercent 
+pvals <- -log10(demographic_schlyrs$P.Value)
 #assign colors
 pcol <- ifelse(pvals < -log(0.05,10), 'darkslategrey', ifelse(betas>0,'#558899','#559999'))
 #get percent hyper/hypo for sites above threshold
 total <- table(pcol)['#558899'] + table(pcol)['#559999']
 pct <- c(round(table(pcol)['#558899']/total * 100,1),round(table(pcol)['#559999']/total * 100,1))
+
+#truncate outlier values over 15 to plot to 15.5
+pvals <- ifelse(pvals > 15, 15.5, pvals)
+
 #auto calculate axis range if not defined
 if(is.null(xlim)){
   max.x <- max(abs(betas))
@@ -274,16 +276,15 @@ df <- data.frame(betas=betas, pvals=pvals, col=pcol)
                  arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) +
     annotate("segment", x = 0.12, xend = 0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
                  arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) + 
-    annotate("text", x = -1.0, y = max(ylim) -0.3, label = "Lower percent \n methylation", size = 10, hjust = 1.02) +
-    annotate("text", x = 1.0, y = max(ylim) -0.3, label = "Higher percent \n methylation", size = 10, hjust = -0.02) +
+    annotate("text", x = -1.0, y = max(ylim) -0.35, label = "Lower percent \n methylation", size = 6, hjust = 1.02) +
+    annotate("text", x = 1.0, y = max(ylim) -0.35, label = "Higher percent \n methylation", size = 6, hjust = -0.02) +
     theme_bw() +
     theme(title=element_text(size = 28), axis.text=element_text(size=25), axis.title = element_text(size = 28)) +
-    xlim(xlim) + ylim(ylim) +
     xlab(paste0('Adjusted difference in percent DNA methylation')) + ylab(expression('-Log'[10]*'(P-Value)')) +
     annotate("text", x = xlim[2] - 0.02, y = 5.5, label = paste0(pct_higher_sig,'%'), color='darkslategrey', size = 10, fontface = 'bold', hjust = 1) +
     annotate("text", x = xlim[1] + 0.02, y = 5.5, label = paste0(pct_lower_sig,'%'), color='#558899', size = 10, fontface = 'bold', hjust = 0) 
 }
-volcano_schlyrs3 <- plot.volcano(schlyrs_m3, ylim=c(0,15.6), xlim=c(-5,5), nudge=0.015, title = "B. Years in school", pct_higher_sig = pct_higher_sig, pct_lower_sig = pct_lower_sig )
+volcano_schlyrs3 <- plot.volcano(demographic_schlyrs, xlim = c(-6.5,6.5), nudge=0.015, title = "B. Years in school", pct_higher_sig = pct_higher_sig, pct_lower_sig = pct_lower_sig )
 
 ```
 
@@ -292,10 +293,10 @@ volcano_schlyrs3 <- plot.volcano(schlyrs_m3, ylim=c(0,15.6), xlim=c(-5,5), nudge
 ```{r}
 
 #Get Number with Higher and Lower Methylation
-fdrp <- livegpar_m3[livegpar_m3$adj.P.Val < 0.05,]
-sig <- livegpar_m3$P.Value < 0.05
-sig_between <- livegpar_m3$P.Value < 0.05 & livegpar_m3$P.Value >= 1e-7
-betas_sig <- livegpar_m3$logFCpercent[sig_between]
+fdrp3 <- demographic_livegpar[demographic_livegpar$adj.P.Val < 0.05,]
+sig3 <- demographic_livegpar$P.Value < 0.05
+sig_between <- demographic_livegpar$P.Value < 0.05 & demographic_livegpar$P.Value >= 1e-7
+betas_sig <- demographic_livegpar$logFCpercent[sig_between]
 livegpar_higher <- sum(betas_sig>0, na.rm=T)
 livegpar_lower <- sum(betas_sig<0, na.rm=T)
 livegpar_total <- length(betas_sig)
@@ -306,16 +307,17 @@ cat("Higher Methylation N:", livegpar_higher, "(",round(pct_higher_sig, 2), "%)\
 cat("Lower Methylation N:", livegpar_lower, "(",round(pct_lower_sig, 2), "%)\n")
 
 
-  ## M3
-plot.volcano <- function(livegpar_m3,main=NULL,xlim=NULL,ylim=NULL, nudge=0, title=""){par(mar=c(5,5,3,3))
+  ## M1
+plot.volcano <- function(demographic_livegpar,main=NULL,xlim=NULL,ylim=NULL, nudge=0, title=""){par(mar=c(5,5,3,3))
 #get betas and pvals from single sites results
-betas <- livegpar_m3$logFCpercent
-pvals <- -log(livegpar_m3$P.Value,10)
+betas <- demographic_livegpar$logFCpercent
+pvals <- -log(demographic_livegpar$P.Value,10)
 #assign colors
 pcol <- ifelse(pvals < -log(0.05,10), 'darkslategrey', ifelse(betas>0,'#558899','#559999'))
 #get percent hyper/hypo for sites above threshold
 total <- table(pcol)['#558899'] + table(pcol)['#559999']
 pct <- c(round(table(pcol)['#558899']/total * 100,1),round(table(pcol)['#559999']/total * 100,1))
+
 #auto calculate axis range if not defined
 if(is.null(xlim)){
   max.x <- max(abs(betas))
@@ -334,28 +336,26 @@ df <- data.frame(betas=betas, pvals=pvals, col=pcol)
                  arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) +
     annotate("segment", x = 0.12, xend = 0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
                  arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) + 
-    annotate("text", x = -1.0, y = max(ylim) -0.3, label = "Lower percent \n methylation", size = 10, hjust = 1.02) +
-    annotate("text", x = 1.0, y = max(ylim) -0.3, label = "Higher percent \n methylation", size = 10, hjust = -0.02) +
+    annotate("text", x = -1.0, y = max(ylim) -0.35, label = "Lower percent \n methylation", size = 6, hjust = 1.02) +
+    annotate("text", x = 1.0, y = max(ylim) -0.35, label = "Higher percent \n methylation", size = 6, hjust = -0.02) +
     theme_bw() +
     theme(title=element_text(size = 28), axis.text=element_text(size=25), axis.title = element_text(size = 28)) +
-    xlim(xlim) + ylim(ylim) +
     xlab(paste0('Adjusted difference in percent DNA methylation')) + ylab(expression('-Log'[10]*'(P-Value)')) +
     annotate("text", x = xlim[2] - 0.02, y = 5.5, label = paste0(pct[1],'%'), color='darkslategrey', size = 10, fontface = 'bold', hjust = 1) +
     annotate("text", x = xlim[1] + 0.02, y = 5.5, label = paste0(pct[2],'%'), color='#558899', size = 10, fontface = 'bold', hjust = 0) 
 }
-volcano_livegpar3 <- plot.volcano(livegpar_m3, ylim=c(0,15.3), xlim=c(-5,5), nudge=0.015, title = "C. Live with a grandparent")
+volcano_livegpar3 <- plot.volcano(demographic_livegpar, ylim = c(0, 15.5), xlim = c(-6.5,6.5), nudge=0.015, title = "C. Live with a grandparent")
 
 ```
 
 ### CHILD SMOKING
-
 ```{r}
 
 #Get Number with Higher and Lower Methylation
-fdrp <- chsmk_m3[chsmk_m3$adj.P.Val < 0.05,]
-sig <- chsmk_m3$P.Value < 0.05
-sig_between <- chsmk_m3$P.Value < 0.05 & chsmk_m3$P.Value >= 1e-7
-betas_sig <- chsmk_m3$logFCpercent[sig_between]
+fdrp4 <- demographic_chsmk[demographic_chsmk$adj.P.Val < 0.05,]
+sig4 <- demographic_chsmk$P.Value < 0.05
+sig_between <- demographic_chsmk$P.Value < 0.05 & demographic_chsmk$P.Value >= 1e-7
+betas_sig <- demographic_chsmk$logFCpercent[sig_between]
 chsmk_higher <- sum(betas_sig>0, na.rm=T)
 chsmk_lower <- sum(betas_sig<0, na.rm=T)
 chsmk_total <- length(betas_sig)
@@ -366,16 +366,23 @@ cat("Higher Methylation N:", chsmk_higher, "(",round(pct_higher_sig, 2), "%)\n")
 cat("Lower Methylation N:", chsmk_lower, "(",round(pct_lower_sig, 2), "%)\n")
 
 
-  ## M3
-plot.volcano <- function(chsmk_m3,main=NULL,xlim=NULL,ylim=NULL, nudge=0, title=""){par(mar=c(5,5,3,3))
+  ## M1
+plot.volcano <- function(demographic_chsmk,main=NULL,xlim=NULL,ylim=NULL, nudge=0, title=""){par(mar=c(5,5,3,3))
 #get betas and pvals from single sites results
-betas <- chsmk_m3$logFCpercent
-pvals <- -log(chsmk_m3$P.Value,10)
+betas <- demographic_chsmk$logFCpercent
+pvals <- -log(demographic_chsmk$P.Value,10)
 #assign colors
 pcol <- ifelse(pvals < -log(0.05,10), 'darkslategrey', ifelse(betas>0,'#558899','#559999'))
 #get percent hyper/hypo for sites above threshold
 total <- table(pcol)['#558899'] + table(pcol)['#559999']
 pct <- c(round(table(pcol)['#558899']/total * 100,1),round(table(pcol)['#559999']/total * 100,1))
+
+#truncate outlier values 
+###over 15 to plot to 15.5
+pvals <- ifelse(pvals > 15, 15.5, pvals)
+###less -6 to plot to -6.5
+betas <- ifelse(betas < -6, -6.5, betas)
+
 #auto calculate axis range if not defined
 if(is.null(xlim)){
   max.x <- max(abs(betas))
@@ -394,16 +401,15 @@ df <- data.frame(betas=betas, pvals=pvals, col=pcol)
                  arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) +
     annotate("segment", x = 0.12, xend = 0.9, y = max(ylim) - 0.2, yend = max(ylim) -0.2,
                  arrow = arrow(length = unit(0.5, "cm")), color = "black", size = 0.5) + 
-    annotate("text", x = -1.0, y = max(ylim) -0.3, label = "Lower percent \n methylation", size = 10, hjust = 1.02) +
-    annotate("text", x = 1.0, y = max(ylim) -0.3, label = "Higher percent \n methylation", size = 10, hjust = -0.02) +
+    annotate("text", x = -1.0, y = max(ylim) -0.35, label = "Lower percent \n methylation", size = 6, hjust = 1.02) +
+    annotate("text", x = 1.0, y = max(ylim) -0.35, label = "Higher percent \n methylation", size = 6, hjust = -0.02) +
     theme_bw() +
     theme(title=element_text(size = 28), axis.text=element_text(size=25), axis.title = element_text(size = 28)) +
-    xlim(xlim) + ylim(ylim) +
     xlab(paste0('Adjusted difference in percent DNA methylation')) + ylab(expression('-Log'[10]*'(P-Value)')) +
-    annotate("text", x = xlim[2] - 0.02, y = 5.5, label = paste0(pct[1],'%'), color='darkslategrey', size = 10, fontface = 'bold', hjust = 1) +
-    annotate("text", x = xlim[1] + 0.02, y = 5.5, label = paste0(pct[2],'%'), color='#558899', size = 10, fontface = 'bold', hjust = 0) 
+    annotate("text", x = xlim[2] - 0.02, y = 5.5, label = paste0(sprintf("%.1f", pct_higher_sig),'%'), color='darkslategrey', size = 10, fontface = 'bold', hjust = 1) +
+    annotate("text", x = xlim[1] + 0.02, y = 5.5, label = paste0(sprintf("%.1f", pct_lower_sig),'%'), color='#558899', size = 10, fontface = 'bold', hjust = 0) 
 }
-volcano_chsmk3 <- plot.volcano(chsmk_m3, ylim=c(0,15.3), xlim=c(-5,5), nudge=0.015, title = "D. Smoking during childhood")
+volcano_chsmk3 <- plot.volcano(demographic_chsmk, xlim = c(-6.5,6.5), nudge=0.015, title = "D. Smoking during childhood")
 
 ```
 
@@ -413,9 +419,9 @@ volcano_chsmk3 <- plot.volcano(chsmk_m3, ylim=c(0,15.3), xlim=c(-5,5), nudge=0.0
 
 # Combine Volcano plots
 volcano_plots <- plot_grid(volcano_rural3, volcano_schlyrs3, volcano_livegpar3, volcano_chsmk3, ncol = 2)
-volcano_plots
+#volcano_plots
 
-save_plot("Manuscript/July06_volcanoplots_primarym3test.png", volcano_plots, base_width = 26, base_height = 18, dpi = 1200, bg = "white")
+save_plot("Manuscript/Revisions/Oct122026_volcanoplots_demographic_truncate.png", volcano_plots, base_width = 28, base_height = 18, dpi = 800, bg = "white")
 
 ```
 
@@ -423,53 +429,53 @@ save_plot("Manuscript/July06_volcanoplots_primarym3test.png", volcano_plots, bas
 
 ## OUTPUT RESULTS TO TABLE
 
-### M3 Socioeconomic and behavior models
+### Demographic models
 
 ```{r}
 
-cat("Top 20 significant CpG Sites for Association between Child Rural and DNAm: Adjusted for health, socioeconomic status, and behavior covariates")
-top_cpgs_rural_m3 <- rural_m3 %>% arrange(P.Value) %>% head(10)
+cat("Top 20 significant CpG Sites for Association between Child Rural and DNAm: Adjusted for demographic covariates")
+top_cpgs_demographic_rural <- demographic_rural %>% arrange(P.Value) %>% head(10)
 
-cat("Top 20 significant CpG Sites for Association between Years of School and DNAm: Adjusted for health, socioeconomic status, and behavior covariates")
-top_cpgs_schlyrsm3 <- schlyrs_m3 %>% arrange(P.Value) %>% head(10)
+cat("Top 20 significant CpG Sites for Association between Years of School and DNAm: Adjusted for demographic covariates")
+top_cpgs_demographic_schlyrs <- demographic_schlyrs %>% arrange(P.Value) %>% head(10)
 
-cat("Top 20 significant CpG Sites for Association between Live with a Grandparent and DNAm: Adjusted for health, socioeconomic status, and behavior covariates")
-top_cpgs_livegparm3 <- livegpar_m3 %>% arrange(P.Value) %>% head(10)
+cat("Top 20 significant CpG Sites for Association between Live with a Grandparent and DNAm: Adjusted for demographic covariates")
+top_cpgs_demographic_livegpar <- demographic_livegpar %>% arrange(P.Value) %>% head(10)
 
-cat("Top 20 significant CpG Sites for Association between Child Smoking and DNAm: Adjusted for health, socioeconomic status, and behavior covariates")
-top_cpgs_chsmk_m3 <- chsmk_m3 %>% arrange(P.Value) %>% head(10)
+cat("Top 20 significant CpG Sites for Association between Child Smoking and DNAm: Adjusted for demographic covariates")
+top_cpgs_demographic_chsmk <- demographic_chsmk %>% arrange(P.Value) %>% head(10)
 
 
 #Set up individual exposure tables
-#Socioeconomic and behavior
-top_cpgs_m3_ruraltbl <-  top_tbl(top_cpgs_rural_m3, "Top 20 significant CpG sites for Grew up in a rural area and DNAm: Adjusted for health, socioeconomic status, and behavior covariates")
-top_cpgs_m3_schlyrstbl <- top_tbl(top_cpgs_schlyrsm3, "Top 20 significant CpG sites for Years in school and DNAm: Adjusted for health, socioeconomic status, and behavior covariates")
-top_cpgs_m3_livegpartbl <- top_tbl(top_cpgs_livegparm3, "Top 20 significant CpG sites for Live with a grandparent and DNAm: Adjusted for health, socioeconomic status, and behavior covariates")
-top_cpgs_chsmkdstbl <- top_tbl(top_cpgs_chsmk_m3, "Top 20 significant CpG sites for Smoking during childhood and DNAm: Adjusted for health, socioeconomic status, and behavior covariates")
+top_cpgs_ruraltbl <-  top_tbl(top_cpgs_demographic_rural, "Top 20 significant CpG sites for Grew up in a rural area and DNAm: Adjusted for demographic covariates")
+top_cpgs_schlyrstbl <- top_tbl(top_cpgs_demographic_schlyrs, "Top 20 significant CpG sites for Years in school and DNAm: Adjusted for demographic covariates")
+top_cpgs_livegpartbl <- top_tbl(top_cpgs_demographic_livegpar, "Top 20 significant CpG sites for Live with a grandparent and DNAm: Adjusted for demographic covariates")
+top_cpgs_chsmktbl <- top_tbl(top_cpgs_demographic_chsmk, "Top 20 significant CpG sites for Smoking during childhood and DNAm: Adjusted for demographic covariates")
 
 
-gtsave(top_cpgs_m3_ruraltbl, "Manuscript/EWAS/top_ruraltbl_M32026Jul1.docx")
-gtsave(top_cpgs_m3_schlyrstbl, "Manuscript/EWAS/top_schlyrstbl_M32026Jul1.docx")
-gtsave(top_cpgs_m3_livegpartbl, "Manuscript/EWAS/top_livegpartbl_M32026Jul1.docx")
-gtsave(top_cpgs_chsmkdstbl, "Manuscript/EWAS/top_chsmktbl_M32026Jul1.docx")
+gtsave(top_cpgs_ruraltbl, "Manuscript/Revisions/top_ruraltblOct122026.docx")
+gtsave(top_cpgs_schlyrstbl, "Manuscript/Revisions/top_schlyrstblOct122026.docx")
+gtsave(top_cpgs_livegpartbl, "Manuscript/Revisions/top_livegpartblOct122026.docx")
+gtsave(top_cpgs_chsmktbl, "Manuscript/Revisions/top_chsmktblOct122026.docx")
 
 
 #Get nominally significant sites (p<0.0001)
-ruralsig_p0.0001 <- rural_m3 %>% filter(P.Value < 0.0001) #49
-schlsig_p0.0001 <- schlyrs_m3 %>% filter(P.Value < 0.0001) #574
-livegparsig_p0.0001 <- livegpar_m3 %>% filter(P.Value < 0.0001) #23
-chsmksig_p0.0001 <- chsmk_m3 %>% filter(P.Value < 0.0001) #20
+ruralsig_p0.0001 <- demographic_rural %>% filter(P.Value < 0.0001) #71
+schlsig_p0.0001 <- demographic_schlyrs %>% filter(P.Value < 0.0001) #5363
+livegparsig_p0.0001 <- demographic_livegpar %>% filter(P.Value < 0.0001) #18
+chsmksig_p0.0001 <- demographic_chsmk %>% filter(P.Value < 0.0001) #507
 
-all_exp_p0.0001 <- all_exposures %>% filter(P.Value < 0.0001) #650 (rura=30; chsmk=21; livegpar=23; schlyrs=576)
+all_exp_p0.0001 <- all_exposures %>% filter(P.Value < 0.0001) #4517 (rura=33; chsmk=361; livegpar=21; schlyrs=4102)
 top_cpgs_by_exposure <- all_exp_p0.0001 %>% group_by(exposure) %>%
   arrange(P.Value, .by_group = TRUE) %>% slice_head(n = 20) %>% ungroup() 
 
+
 #Save
 sheets_p0.0001 = list('childrural' = ruralsig_p0.0001, 'SCHLYRS' = schlsig_p0.0001, 'LIVEGPAR' = livegparsig_p0.0001, 'CHSMOKE' = chsmksig_p0.0001)
-write_xlsx(sheets_p0.0001, 'Manuscript/EWAS/Significant Sites P<0.0001.xlsx', format_headers = TRUE)
+write_xlsx(sheets_p0.0001, 'Manuscript/Revisions/Demographic Significant Sites P<0.0001.xlsx', format_headers = TRUE)
 
 allexpsheets_p0.0001 = list('All exposures' = all_exp_p0.0001, 'By Exposure Top 20' = top_cpgs_by_exposure)
-write_xlsx(allexpsheets_p0.0001, 'Manuscript/EWAS/Mixtures Exposure Significant Sites P<0.0001.xlsx', format_headers = TRUE)
+write_xlsx(allexpsheets_p0.0001, 'Manuscript/Revisions/Co-exposure Significant Sites P<0.0001.xlsx', format_headers = TRUE)
 
 ```
 
@@ -478,19 +484,23 @@ write_xlsx(allexpsheets_p0.0001, 'Manuscript/EWAS/Mixtures Exposure Significant 
 ```{r}
 
 ### write single site results files
-#Socioeconomic and behavior Variables models
-sheets_primarym3 = list('childrural' = rural_m3, 'SCHLYRS' = schlyrs_m3, 'LIVEGPAR' = livegpar_m3, 'CHSMOKE' = chsmk_m3)
-writexl::write_xlsx(sheets_primarym3, 'Manuscript/EWAS/Supplemental Table 6-Single Site Results.xlsx')
+#Demographic models
+sheets_demo = list('childrural' = demographic_rural, 'SCHLYRS' = demographic_schlyrs, 'LIVEGPAR' = demographic_livegpar, 'CHSMOKE' = demographic_chsmk)
+writexl::write_xlsx(sheets_demo, 'Manuscript/Revisions/Supplemental Table 8-Demographic Single Site Results.xlsx')
 
 
 #Health 
-sheets_suppm2 = list('childrural' = h_rural, 'SCHLYRS' = h_schlyrs, 'LIVEGPAR' = h_livegpar, 'CHSMOKE' = h_chsmk)
-write_xlsx(sheets_suppm2, 'Manuscript/EWAS/Supplemental Table 7-Health Single Site Results.xlsx')
+sheets_health = list('childrural' = h_rural, 'SCHLYRS' = h_schlyrs, 'LIVEGPAR' = h_livegpar, 'CHSMOKE' = h_chsmk)
+write_xlsx(sheets_health, 'Manuscript/Revisions/Supplemental Table 9-Health Single Site Results.xlsx')
 
 
-#Demographic models
-sheets_supplm1 = list('childrural' = demographic_rural, 'SCHLYRS' = demographic_schlyrs, 'LIVEGPAR' = demographic_livegpar, 'CHSMOKE' = demographic_chsmk)
-write_xlsx(sheets_supplm1, 'Manuscript/EWAS/Supplemental Table 8-Demographic Single Site Results.xlsx', format_headers = TRUE)
+#Socioeconomic and behavior Variables models
+sheets_ses = list('childrural' = rural_m3, 'SCHLYRS' = schlyrs_m3, 'LIVEGPAR' = livegpar_m3, 'CHSMOKE' = chsmk_m3)
+write_xlsx(sheets_ses, 'Manuscript/Revisions/Supplemental Table 10-Socioeconomic and Behavior Single Site Results.xlsx', format_headers = TRUE)
+
+
+#Co-Exposures
+write.csv(all_exposures, 'Manuscript/Revisions/Revised Supplemental Table 13-Co-Exposure Single Site Results.csv')
 
 ```
 

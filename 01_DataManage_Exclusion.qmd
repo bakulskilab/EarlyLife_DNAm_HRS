@@ -38,7 +38,7 @@ Oct24_meta <- readRDS("Datasets/HRS_DNAm_meta_nk.RDS")
 #row.names(Oct24_meta) <- NULL
 
 
-## Read in Global Methylation file
+## Read in Array-wide (Global) Methylation file
 globalM_OCT24 <- read_csv("Datasets/globalmethylationOCT24_summary.csv")
 ## Select columns of interest
 globalM_OCT24 <- select(globalM_OCT24, 'Basename', 'globalmethylation', 'Island_mean', 'OpenSea_mean', 'Shelf_mean', 'Shore_mean')
@@ -171,19 +171,19 @@ dim(HRS_DNAm_meta_Cell9)
 
 ```{r}
 
-saveRDS(Oct24_meta, file = "NewData/HRS_DNAm_meta_nk202617Jun.RDS")
+#saveRDS(Oct24_meta, file = "NewData/HRS_DNAm_meta_nk202617Jun.RDS")
 
-saveRDS(hrs_combine_wide, file = "NewData/hrs_combine_wide_nk202617Jun.RDS")
+saveRDS(hrs_combine_wide, file = "NewData/hrs_combine_wide_nkSept222026.RDS")
 
-saveRDS(hrs_democoggen_wide, file = "NewData/hrs_democoggen_wide_nk202617Jun.RDS")
+saveRDS(hrs_democoggen_wide, file = "NewData/hrs_democoggen_wide_nkSept222026.RDS")
 
-saveRDS(globalM_OCT24, file = "NewData/global_methylation_nk202617Jun.RDS")
+saveRDS(globalM_OCT24, file = "NewData/global_methylation_nkSept222026.RDS")
 
-saveRDS(chf, file = "NewData/chf_nk202617Jun.RDS")
+saveRDS(chf, file = "NewData/chf_nkSept222026.RDS")
 
-saveRDS(full.labelled, file = "NewData/full.labelled_nk202617Jun.RDS")
+saveRDS(full.labelled, file = "NewData/full.labelled_nkSept222026.RDS")
 
-saveRDS(rand92_2018V1, file = "NewData/rand92_2018V1_nk202617Jun.RDS")
+saveRDS(rand92_2018V1, file = "NewData/rand92_2018V1_nkSept222026.RDS")
 
 rm(chf, full.labelled, hrs_democoggen_wide, rand92_2018V1, globalM_OCT24, hrs_combine_wide, Oct24_meta, Oct24_metaGM, HRS_DNAm_meta_Cell2, HRS_DNAm_meta_Cell4, HRS_DNAm_meta_Cell7, HRS_DNAm_meta_Cell8)
 
@@ -310,7 +310,7 @@ HRS_DNAm_meta_Cell9$SCHLYRS_cat <- factor(HRS_DNAm_meta_Cell9$SCHLYRS_cat, level
 table(HRS_DNAm_meta_Cell9$SCHLYRS_cat, useNA = "always")
 
 
-  ## Create global methylation categorical (high vs low --> use a cutoff of ~59.34 based on variable median) 
+  ## Create array-wide (global) methylation categorical (high vs low --> use a cutoff of ~59.34 based on variable median) 
 summary(HRS_DNAm_meta_Cell9$globalmethylation)
 HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(globalmethylation_cat = ifelse((globalmethylation > 59.34), 1, 0))
 HRS_DNAm_meta_Cell9$globalmethylation_cat <- factor(HRS_DNAm_meta_Cell9$globalmethylation_cat, levels = c(0,1), labels = c("Low", "High"))
@@ -463,6 +463,7 @@ HRS_DNAm_meta_Cell9$LEVINEAccel <- factor(HRS_DNAm_meta_Cell9$LEVINEAccel, level
 table(HRS_DNAm_meta_Cell9$LEVINEAccel)
 
 
+
   ## Age acceleration based on MPOA (transform prior to accel)
 HRS_DNAm_meta_Cell9$MPOA_residuals <- residuals(lm(MPOA*age ~ age, data = HRS_DNAm_meta_Cell9, na.action = na.exclude))
 summary(HRS_DNAm_meta_Cell9$MPOA_residuals)
@@ -470,6 +471,15 @@ summary(HRS_DNAm_meta_Cell9$MPOA_residuals)
 HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(MPOAAccel = ifelse((MPOA_residuals > 0), 1, 0))
 HRS_DNAm_meta_Cell9$MPOAAccel <- factor(HRS_DNAm_meta_Cell9$MPOAAccel, levels = c(0,1), labels = c("Age not accelerated", "Age accelerated"))
 table(HRS_DNAm_meta_Cell9$MPOAAccel)
+
+  ## Age acceleration based on MPOA (untransformed: keep as a rate)
+HRS_DNAm_meta_Cell9$MPOA_residrate <- residuals(lm(MPOA ~ age, data = HRS_DNAm_meta_Cell9, na.action = na.exclude))
+summary(HRS_DNAm_meta_Cell9$MPOA_residrate)
+
+HRS_DNAm_meta_Cell9 <- HRS_DNAm_meta_Cell9 %>% mutate(MPOAAccelrate = ifelse((MPOA_residrate > 0), 1, 0))
+HRS_DNAm_meta_Cell9$MPOAAccelrate <- factor(HRS_DNAm_meta_Cell9$MPOAAccelrate, levels = c(0,1), labels = c("Age not accelerated", "Age accelerated"))
+table(HRS_DNAm_meta_Cell9$MPOAAccelrate)
+
 
 
   ## Age acceleration based on HANNUM
@@ -598,7 +608,7 @@ complete$B = set_label(complete$B, label = ("B-cells"))
 complete$CD4 = set_label(complete$CD4, label = ("CD4+ T-cells"))
 complete$CD8 = set_label(complete$CD8, label = ("CD8+ T-cells"))
 complete$MO = set_label(complete$MO, label = ("Monocytes"))
-complete$globalmethylation = set_label(complete$globalmethylation, label = ("Global methylation"))
+complete$globalmethylation = set_label(complete$globalmethylation, label = ("Array-wide methylation"))
 complete$Island_mean = set_label(complete$Island_mean, label = ("Island methylation"))
 complete$OpenSea_mean = set_label(complete$OpenSea_mean, label = ("Open sea methylation"))
 complete$Shelf_mean = set_label(complete$Shelf_mean, label = ("Shelf methylation"))
@@ -659,7 +669,7 @@ full$B = set_label(full$B, label = ("B-cells"))
 full$CD4 = set_label(full$CD4, label = ("CD4+ T-cells"))
 full$CD8 = set_label(full$CD8, label = ("CD8+ T-cells"))
 full$MO = set_label(full$MO, label = ("Monocytes"))
-full$globalmethylation = set_label(full$globalmethylation, label = ("Global methylation"))
+full$globalmethylation = set_label(full$globalmethylation, label = ("Array-wide methylation"))
 full$Island_mean = set_label(full$Island_mean, label = ("Island methylation"))
 full$OpenSea_mean = set_label(full$OpenSea_mean, label = ("Open sea methylation"))
 full$Shelf_mean = set_label(full$Shelf_mean, label = ("Shelf methylation"))
@@ -682,15 +692,15 @@ full$sex = set_label(full$sex, label = ("Sex"))
 
 ```{r}
 
-saveRDS(complete, file = "NewData/HRS_DNAm_meta_Cell9_Included202617Jun.RDS")
+saveRDS(complete, file = "NewData/HRS_DNAm_meta_Cell9_IncludedSept222026.RDS")
 
   ## Subset data frame for variables of interest
-complete_subset <- select(complete, "HHIDPN", "Sample_Plate", "Basename", "HORVATH_DNAMAGE", "HORVATH_residuals", "HORVATHAccel", "HANNUM_DNAMAGE", "HANNUM_residuals", "HANNUMAccel", "LEVINE_DNAMAGE", "LEVINE_residuals", "LEVINEAccel", "DNAMGRIMAGE", "GRIM_residuals", "GRIMAccel", "MPOA", "MPOA_residuals", "MPOAAccel", "childrural_democoggen", "SCHLYRS", "SCHLYRS_cat", "SCHLYRS_rev", "LIVEGPAR_R", "CHSMOKE_R", "GR", "NK", "B", "CD4", "CD8", "MO", "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "globalmethylation_cat", "Island_mean_cat", "OpenSea_mean_cat", "Shelf_mean_cat", "Shore_mean_cat", "smoke_latest", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "HIBP_latest", "DIAB_latest", "VIGACT_latest", "VIGACT_collapsed", "age", "race.ethnicity", "raceethnicity_collapsed", "sex", "exclude", "flag_for_exclusion", "included")
+complete_subset <- select(complete, "HHIDPN", "Sample_Plate", "Basename", "HORVATH_DNAMAGE", "HORVATH_residuals", "HORVATHAccel", "HANNUM_DNAMAGE", "HANNUM_residuals", "HANNUMAccel", "LEVINE_DNAMAGE", "LEVINE_residuals", "LEVINEAccel", "DNAMGRIMAGE", "GRIM_residuals", "GRIMAccel", "MPOA", "MPOA_residuals", "MPOAAccel", "MPOA_residrate", "MPOAAccelrate", "childrural_democoggen", "SCHLYRS", "SCHLYRS_cat", "SCHLYRS_rev", "LIVEGPAR_R", "CHSMOKE_R", "GR", "NK", "B", "CD4", "CD8", "MO", "globalmethylation", "Island_mean", "OpenSea_mean", "Shelf_mean", "Shore_mean", "globalmethylation_cat", "Island_mean_cat", "OpenSea_mean_cat", "Shelf_mean_cat", "Shore_mean_cat", "smoke_latest", "BEALE_latest", "Parent_Educ", "ATOTB_latest", "HIBP_latest", "DIAB_latest", "VIGACT_latest", "VIGACT_collapsed", "age", "race.ethnicity", "raceethnicity_collapsed", "sex", "exclude", "flag_for_exclusion", "included")
 
-saveRDS(complete_subset, file = "NewData/HRS_DNAm_meta_Cell9_Includedsubset202617Jun.RDS")
+saveRDS(complete_subset, file = "NewData/HRS_DNAm_meta_Cell9_IncludedsubsetSept222026.RDS")
 
-saveRDS(HRS_DNAm_meta_Cell9, file = "NewData/HRS_DNAm_meta_Cell9_notfiltered202617Jun.RDS")
+saveRDS(HRS_DNAm_meta_Cell9, file = "NewData/HRS_DNAm_meta_Cell9_notfilteredSept222026.RDS")
 
-saveRDS(full, file = "NewData/full_filtered202617Jun.RDS")
+saveRDS(full, file = "NewData/full_filteredSept222026.RDS")
 
 ```

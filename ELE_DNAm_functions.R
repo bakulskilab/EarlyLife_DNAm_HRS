@@ -216,8 +216,8 @@ forest_plot <- function(filtered_df) {
 }
 
 forest_plotGM <- function(filtered_df) {
-  outcome_levels <- c("Global methylation", "Island methylation", "Shelf methylation", "Shore methylation", "Open Sea methylation")
-  reds <- c("Global methylation" = "#960000", "Island methylation" = "#853e0f", "Shelf methylation" = "#c70000", "Shore methylation" = "#bc6a2c", "Open Sea methylation" = "#f72828")
+  outcome_levels <- c("Array-wide methylation", "Island methylation", "Shelf methylation", "Shore methylation", "Open Sea methylation")
+  reds <- c("Array-wide methylation" = "#960000", "Island methylation" = "#853e0f", "Shelf methylation" = "#c70000", "Shore methylation" = "#bc6a2c", "Open Sea methylation" = "#f72828")
   ggplot(filtered_df, aes(x = estimate, y = exposure, color = outcome)) +
     geom_point(position = position_dodge(width = 0.9), size = 3) +
     scale_color_manual(values = reds) +
